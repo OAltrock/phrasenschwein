@@ -44,3 +44,15 @@ export async function createUser(username, password) {
 
   return response.json();
 }
+
+export async function deleteUser(username) {
+  const response = await fetch(`${API_URL}/api/users/${encodeURIComponent(username)}`, {
+    method: "DELETE",
+    headers: authHeader(),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "Failed to delete user");
+  }
+}

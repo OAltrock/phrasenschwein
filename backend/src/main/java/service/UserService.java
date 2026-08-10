@@ -5,12 +5,14 @@ import dtos.CreateUserRequest;
 import dtos.UserSummary;
 import exceptions.ResourceNotFoundException;
 import exceptions.SelfAccountResetException;
+import exceptions.SelfUserDeletionException;
 import exceptions.UsernameAlreadyExistsException;
 import jakarta.transaction.Transactional;
 import models.PhraseUser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
 import java.math.BigDecimal;
@@ -21,10 +23,13 @@ import java.math.BigDecimal;
 public class UserService {
 
     private final PhraseUserRepository phraseUserRepository;
+    private final PhraseRepository phraseRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(PhraseUserRepository phraseUserRepository, PasswordEncoder passwordEncoder) {
+    public UserService(PhraseUserRepository phraseUserRepository, PhraseRepository phraseRepository,
+                        PasswordEncoder passwordEncoder) {
         this.phraseUserRepository = phraseUserRepository;
+        this.phraseRepository = phraseRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -54,5 +59,17 @@ public class UserService {
         phraseUserRepository.resetAccountBalance(user.getId());
 
         return new AccountResetResponse(user.getId(), user.getUsername(), BigDecimal.ZERO);
+    }
+
+    public void deleteUser(String username, Long actingUserId) {
+        PhraseUser user = phraseUserRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+
+        if (user.getId().equals(actingUserId)) {
+            throw new SelfUserDeletionException("You cannot delete your own account");
+        }
+
+        phraseRepository.deleteByIssuerIdOrReceiverId(user.getId());
+        phraseUserRepository.delete(user);
     }
 }

@@ -225,4 +225,68 @@ class UserControllerTest {
 
         assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
+
+    @Test
+    void deleteUserAsAdminReturns204AndRemovesUser() {
+        restClient.delete()
+                .uri("/api/users/{username}", victim.getUsername())
+                .header("Authorization", "Bearer " + adminToken)
+                .retrieve()
+                .toBodilessEntity();
+
+        assertThat(phraseUserRepository.findByUsername("victim")).isEmpty();
+    }
+
+    @Test
+    void deleteUserAsNonAdminIsForbidden() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.delete()
+                        .uri("/api/users/{username}", victim.getUsername())
+                        .header("Authorization", "Bearer " + token)
+                        .retrieve()
+                        .toBodilessEntity());
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(phraseUserRepository.findByUsername("victim")).isPresent();
+    }
+
+    @Test
+    void deleteUserWithoutTokenIsRejected() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.delete()
+                        .uri("/api/users/{username}", victim.getUsername())
+                        .retrieve()
+                        .toBodilessEntity());
+
+        assertThat(ex.getStatusCode().is4xxClientError()).isTrue();
+    }
+
+    @Test
+    void deleteUnknownUserAsAdminReturns404() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.delete()
+                        .uri("/api/users/{username}", "no-such-user")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .retrieve()
+                        .toBodilessEntity());
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void adminDeletingOwnAccountReturns400() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.delete()
+                        .uri("/api/users/{username}", admin.getUsername())
+                        .header("Authorization", "Bearer " + adminToken)
+                        .retrieve()
+                        .toBodilessEntity());
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(phraseUserRepository.findByUsername("admin-user")).isPresent();
+    }
 }

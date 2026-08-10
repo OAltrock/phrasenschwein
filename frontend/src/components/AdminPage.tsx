@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { createUser } from '../api/usersApi'
+import { createUser, deleteUser } from '../api/usersApi'
+import UserSelect from './UserSelect'
 
 interface AdminPageProps {
   adminUsername: string
@@ -13,6 +14,12 @@ function AdminPage({ adminUsername, onLogout }: AdminPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const [deleteUsername, setDeleteUsername] = useState<string | null>(null)
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [userListKey, setUserListKey] = useState(0)
+
   async function handleSubmit(event) {
     event.preventDefault()
     setError(null)
@@ -24,10 +31,39 @@ function AdminPage({ adminUsername, onLogout }: AdminPageProps) {
       setMessage(`Nutzer "${created.username}" wurde angelegt.`)
       setUsername('')
       setPassword('')
+      setUserListKey((key) => key + 1)
     } catch (err) {
       setError(err.message)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  async function handleDelete(event) {
+    event.preventDefault()
+    setDeleteError(null)
+    setDeleteMessage(null)
+
+    if (!deleteUsername) {
+      setDeleteError('Bitte Nutzer auswählen.')
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Nutzer "${deleteUsername}" wirklich entfernen? Dessen Sanktionshistorie wird ebenfalls gelöscht.`
+    )
+    if (!confirmed) return
+
+    setIsDeleting(true)
+    try {
+      await deleteUser(deleteUsername)
+      setDeleteMessage(`Nutzer "${deleteUsername}" wurde entfernt.`)
+      setDeleteUsername(null)
+      setUserListKey((key) => key + 1)
+    } catch (err) {
+      setDeleteError(err.message)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -61,6 +97,22 @@ function AdminPage({ adminUsername, onLogout }: AdminPageProps) {
           {message && <p>{message}</p>}
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Lege an…' : 'Nutzer anlegen'}
+          </button>
+        </form>
+
+        <form className="login-form" onSubmit={handleDelete}>
+          <h5>Nutzer entfernen</h5>
+          <UserSelect
+            key={userListKey}
+            value={deleteUsername}
+            onChange={setDeleteUsername}
+            label="Welcher Nutzer?"
+            required
+          />
+          {deleteError && <p className="login-error">{deleteError}</p>}
+          {deleteMessage && <p>{deleteMessage}</p>}
+          <button type="submit" disabled={isDeleting}>
+            {isDeleting ? 'Entferne…' : 'Nutzer entfernen'}
           </button>
         </form>
       </section>

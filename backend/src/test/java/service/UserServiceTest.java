@@ -7,8 +7,12 @@ import dtos.CreateUserRequest;
 import dtos.UserSummary;
 import exceptions.ResourceNotFoundException;
 import exceptions.SelfAccountResetException;
+import exceptions.SelfUserDeletionException;
 import exceptions.UsernameAlreadyExistsException;
+import models.FineType;
+import models.Phrase;
 import models.PhraseUser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import repository.FineTypeRepository;
 import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
@@ -36,10 +41,23 @@ class UserServiceTest {
     @Autowired
     private PhraseRepository phraseRepository;
     @Autowired
+    private FineTypeRepository fineTypeRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private PhraseUser actor;
     private PhraseUser user;
+
+    @BeforeAll
+    void seedFineTypes() {
+        for (FineType.Name name : FineType.Name.values()) {
+            if (fineTypeRepository.findByName(name).isEmpty()) {
+                FineType fineType = new FineType();
+                fineType.setName(name);
+                fineTypeRepository.save(fineType);
+            }
+        }
+    }
 
     @BeforeEach
     void setUp() {
@@ -104,5 +122,52 @@ class UserServiceTest {
                 userService.createUser(new CreateUserRequest(actor.getUsername(), "password123")));
 
         assertThat(phraseUserRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void deleteUserRemovesUserWithNoHistory() {
+        userService.deleteUser(user.getUsername(), actor.getId());
+
+        assertThat(phraseUserRepository.findByUsername("victim")).isEmpty();
+    }
+
+    @Test
+    void deleteUserCascadesSanctionHistoryAsIssuerAndReceiver() {
+        FineType fineType = fineTypeRepository.findByName(FineType.Name.STANDARD).orElseThrow();
+
+        Phrase issuedByVictim = new Phrase();
+        issuedByVictim.setIssuer(user);
+        issuedByVictim.setReceiver(actor);
+        issuedByVictim.setFineType(fineType);
+        issuedByVictim.setText("victim war es");
+        phraseRepository.save(issuedByVictim);
+
+        Phrase receivedByVictim = new Phrase();
+        receivedByVictim.setIssuer(actor);
+        receivedByVictim.setReceiver(user);
+        receivedByVictim.setFineType(fineType);
+        receivedByVictim.setText("actor war es");
+        phraseRepository.save(receivedByVictim);
+
+        assertThat(phraseRepository.count()).isEqualTo(2);
+
+        userService.deleteUser(user.getUsername(), actor.getId());
+
+        assertThat(phraseUserRepository.findByUsername("victim")).isEmpty();
+        assertThat(phraseRepository.count()).isEqualTo(0);
+    }
+
+    @Test
+    void deleteUserThrowsWhenUserDoesNotExist() {
+        assertThrows(ResourceNotFoundException.class, () ->
+                userService.deleteUser("does-not-exist", actor.getId()));
+    }
+
+    @Test
+    void deleteUserThrowsWhenActorDeletesOwnAccount() {
+        assertThrows(SelfUserDeletionException.class, () ->
+                userService.deleteUser(actor.getUsername(), actor.getId()));
+
+        assertThat(phraseUserRepository.findByUsername("actor")).isPresent();
     }
 }
