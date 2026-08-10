@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react'
 import { fetchRecentSanctions, PhraseResponse } from '../api/sanctionApi'
+import { formatDate } from '../utils/formatDate'
 
-const dateFormatter = new Intl.DateTimeFormat('de-DE', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-})
-
-function formatDate(issuedAt: string) {
-  const date = new Date(issuedAt)
-  return Number.isNaN(date.getTime()) ? issuedAt : dateFormatter.format(date)
+interface RecentSanctionsListProps {
+  onShowAll: () => void
 }
 
-function RecentSanctionsList() {
+function RecentSanctionsList({ onShowAll }: RecentSanctionsListProps) {
   const [sanctions, setSanctions] = useState<PhraseResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +23,6 @@ function RecentSanctionsList() {
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
-    console.log(sanctions)
     return () => {
       cancelled = true
     }
@@ -52,6 +46,9 @@ function RecentSanctionsList() {
           ))}
         </ul>
       )}
+      <button type="button" className="counter" onClick={onShowAll}>
+        Alle Sanktionen anzeigen
+      </button>
     </div>
   )
 }

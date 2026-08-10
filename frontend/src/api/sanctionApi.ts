@@ -44,3 +44,14 @@ export async function fetchRecentSanctions(): Promise<PhraseResponse[]> {
 
   return response.json()
 }
+
+export async function fetchAllSanctions(): Promise<PhraseResponse[]> {
+  const response = await fetch(`${API_URL}/api/phrase/all`)
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message || 'Failed to load sanctions')
+  }
+
+  return response.json()
+}

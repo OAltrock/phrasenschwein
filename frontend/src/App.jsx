@@ -3,6 +3,7 @@ import LoginForm from "./components/LoginForm";
 import SanctionForm from "./components/SanctionForm";
 import AccountResetForm from "./components/AccountResetForm";
 import RecentSanctionsList from "./components/RecentSanctionsList";
+import AllSanctionsPage from "./components/AllSanctionsPage";
 import "./App.css";
 
 const STORAGE_KEY = "phrasenschwein.auth";
@@ -18,6 +19,7 @@ function loadStoredAuth() {
 
 function App() {
   const [auth, setAuth] = useState(loadStoredAuth);
+  const [showAllSanctions, setShowAllSanctions] = useState(false);
 
   function handleLoginSuccess(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -30,6 +32,10 @@ function App() {
   }
 
   if (!auth) {
+    if (showAllSanctions) {
+      return <AllSanctionsPage onBack={() => setShowAllSanctions(false)} />;
+    }
+
     return (
       <div id="main">
         <h2>
@@ -38,7 +44,7 @@ function App() {
         </h2>
         <section id="center">
           <LoginForm onLoginSuccess={handleLoginSuccess} />
-          <RecentSanctionsList />
+          <RecentSanctionsList onShowAll={() => setShowAllSanctions(true)} />
         </section>
       </div>
     );

@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface PhraseRepository extends JpaRepository<Phrase, Long> {
 
     List<Phrase> findTop10ByOrderByIssuedAtDescIdDesc();
+
+    List<Phrase> findAllByOrderByIssuedAtDescIdDesc();
 }

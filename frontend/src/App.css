@@ -80,3 +80,10 @@
   color: var(--text);
   opacity: 0.75;
 }
+
+.all-sanctions {
+  width: 100%;
+  max-width: 640px;
+  margin: 16px auto 0;
+  font-size: 14px;
+}

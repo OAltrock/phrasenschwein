@@ -36,4 +36,9 @@ public class PhraseController {
     public List<PhraseResponse> recent() {
         return phraseService.recentSanctions();
     }
+
+    @GetMapping("/all")
+    public List<PhraseResponse> all() {
+        return phraseService.allSanctions();
+    }
 }

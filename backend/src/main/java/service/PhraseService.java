@@ -64,15 +64,25 @@ public class PhraseService {
 
     public List<PhraseResponse> recentSanctions() {
         return phraseRepository.findTop10ByOrderByIssuedAtDescIdDesc().stream()
-                .map(phrase -> new PhraseResponse(
-                        phrase.getId(),
-                        phrase.getIssuer().getUsername(),
-                        phrase.getReceiver().getUsername(),
-                        phrase.getFineType().getName(),
-                        phrase.getFineType().getName().getDefaultAmount(),
-                        phrase.getText(),
-                        phrase.getIssuedAt()
-                ))
+                .map(this::toResponse)
                 .toList();
+    }
+
+    public List<PhraseResponse> allSanctions() {
+        return phraseRepository.findAllByOrderByIssuedAtDescIdDesc().stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    private PhraseResponse toResponse(Phrase phrase) {
+        return new PhraseResponse(
+                phrase.getId(),
+                phrase.getIssuer().getUsername(),
+                phrase.getReceiver().getUsername(),
+                phrase.getFineType().getName(),
+                phrase.getFineType().getName().getDefaultAmount(),
+                phrase.getText(),
+                phrase.getIssuedAt()
+        );
     }
 }

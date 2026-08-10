@@ -190,4 +190,22 @@ class PhraseServiceTest {
         assertThat(recent.get(0).text()).isEqualTo("phrase-11");
         assertThat(recent.get(9).text()).isEqualTo("phrase-2");
     }
+
+    @Test
+    void allSanctionsReturnsEmptyListWhenNoneExist() {
+        assertThat(phraseService.allSanctions()).isEmpty();
+    }
+
+    @Test
+    void allSanctionsReturnsMostRecentFirstAndIsNotLimitedToTen() {
+        for (int i = 0; i < 12; i++) {
+            phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "phrase-" + i), issuer.getId());
+        }
+
+        List<PhraseResponse> all = phraseService.allSanctions();
+
+        assertThat(all).hasSize(12);
+        assertThat(all.get(0).text()).isEqualTo("phrase-11");
+        assertThat(all.get(11).text()).isEqualTo("phrase-0");
+    }
 }
