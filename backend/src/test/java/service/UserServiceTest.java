@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
 import java.math.BigDecimal;
@@ -30,6 +31,8 @@ class UserServiceTest {
     @Autowired
     private PhraseUserRepository phraseUserRepository;
     @Autowired
+    private PhraseRepository phraseRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private PhraseUser actor;
@@ -37,6 +40,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        phraseRepository.deleteAll();
         phraseUserRepository.deleteAll();
 
         actor = new PhraseUser();

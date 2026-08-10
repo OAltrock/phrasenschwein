@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
 import java.math.BigDecimal;
@@ -36,6 +37,8 @@ class UserControllerTest {
     @Autowired
     private PhraseUserRepository phraseUserRepository;
     @Autowired
+    private PhraseRepository phraseRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private RestClient restClient;
@@ -45,6 +48,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
+        phraseRepository.deleteAll();
         phraseUserRepository.deleteAll();
 
         actor = new PhraseUser();

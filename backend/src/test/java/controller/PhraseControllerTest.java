@@ -146,4 +146,30 @@ class PhraseControllerTest {
 
         assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
+    @Test
+    void recentOverHttpIsAccessibleWithoutTokenAndReturnsMostRecentFirst() {
+        restClient.post()
+                .uri("/api/phrase/sanction")
+                .header("Authorization", "Bearer " + token)
+                .body(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "erste"))
+                .retrieve()
+                .toBodilessEntity();
+        restClient.post()
+                .uri("/api/phrase/sanction")
+                .header("Authorization", "Bearer " + token)
+                .body(new SanctionRequest(receiver.getUsername(), FineType.Name.STANDARD, "zweite"))
+                .retrieve()
+                .toBodilessEntity();
+
+        PhraseResponse[] recent = restClient.get()
+                .uri("/api/phrase/recent")
+                .retrieve()
+                .body(PhraseResponse[].class);
+
+        assertThat(recent).isNotNull();
+        assertThat(recent).hasSize(2);
+        assertThat(recent[0].text()).isEqualTo("zweite");
+        assertThat(recent[1].text()).isEqualTo("erste");
+    }
 }

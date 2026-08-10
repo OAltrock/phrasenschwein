@@ -14,6 +14,7 @@ import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @Validated
@@ -59,5 +60,19 @@ public class PhraseService {
                 phrase.getText(),
                 phrase.getIssuedAt()
         );
+    }
+
+    public List<PhraseResponse> recentSanctions() {
+        return phraseRepository.findTop10ByOrderByIssuedAtDescIdDesc().stream()
+                .map(phrase -> new PhraseResponse(
+                        phrase.getId(),
+                        phrase.getIssuer().getUsername(),
+                        phrase.getReceiver().getUsername(),
+                        phrase.getFineType().getName(),
+                        phrase.getFineType().getName().getDefaultAmount(),
+                        phrase.getText(),
+                        phrase.getIssuedAt()
+                ))
+                .toList();
     }
 }

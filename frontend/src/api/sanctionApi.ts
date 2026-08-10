@@ -7,6 +7,16 @@ export interface SanctionRequest {
   text: string
 }
 
+export interface PhraseResponse {
+  id: number
+  issuer: string
+  receiver: string
+  type: FineType
+  amount: number
+  text: string
+  issuedAt: string
+}
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
 export async function sanction(username: string, type: FineType, text: string) {
@@ -19,6 +29,17 @@ export async function sanction(username: string, type: FineType, text: string) {
   if (!response.ok) {
     const body = await response.json().catch(() => null)
     throw new Error(body?.message || 'Request failed')
+  }
+
+  return response.json()
+}
+
+export async function fetchRecentSanctions(): Promise<PhraseResponse[]> {
+  const response = await fetch(`${API_URL}/api/phrase/recent`)
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message || 'Failed to load recent sanctions')
   }
 
   return response.json()

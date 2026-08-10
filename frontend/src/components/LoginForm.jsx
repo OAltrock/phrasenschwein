@@ -24,7 +24,7 @@ function LoginForm({ onLoginSuccess }) {
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
-      <h1>PhrasenSchwein</h1>
+      <h3>Log in</h3>      
       <label htmlFor="username">Username</label>
       <input
         id="username"

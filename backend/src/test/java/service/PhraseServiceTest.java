@@ -23,6 +23,7 @@ import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -155,5 +156,38 @@ class PhraseServiceTest {
     void sanctionThrowsWhenIssuerDoesNotExist() {
         assertThrows(ResourceNotFoundException.class, () ->
                 phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"), -1L));
+    }
+
+    @Test
+    void recentSanctionsReturnsEmptyListWhenNoneExist() {
+        assertThat(phraseService.recentSanctions()).isEmpty();
+    }
+
+    @Test
+    void recentSanctionsReturnsMostRecentFirst() {
+        phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "erste"), issuer.getId());
+        phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.STANDARD, "zweite"), issuer.getId());
+        phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.SCHWER, "dritte"), issuer.getId());
+
+        List<PhraseResponse> recent = phraseService.recentSanctions();
+
+        assertThat(recent).hasSize(3);
+        assertThat(recent.get(0).text()).isEqualTo("dritte");
+        assertThat(recent.get(1).text()).isEqualTo("zweite");
+        assertThat(recent.get(2).text()).isEqualTo("erste");
+        assertThat(recent.get(0).receiver()).isEqualTo(receiver.getUsername());
+    }
+
+    @Test
+    void recentSanctionsIsLimitedToTenMostRecent() {
+        for (int i = 0; i < 12; i++) {
+            phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "phrase-" + i), issuer.getId());
+        }
+
+        List<PhraseResponse> recent = phraseService.recentSanctions();
+
+        assertThat(recent).hasSize(10);
+        assertThat(recent.get(0).text()).isEqualTo("phrase-11");
+        assertThat(recent.get(9).text()).isEqualTo("phrase-2");
     }
 }

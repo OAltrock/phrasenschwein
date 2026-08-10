@@ -40,7 +40,7 @@ function SanctionForm() {
       console.log(fineType)
       const resp = await sanction( username, fineType, text)
       console.log(resp)
-      showMessage(`Auf Konto von ${resp.receiver} wurde wurde eine ${fineType.toLowerCase()} Strafe erhoben.`)
+      showMessage(`Auf dem Konto von ${resp.receiver} wurde wurde eine ${fineType.toLowerCase()} Strafe erhoben.`)
     } catch (err) {
       setError(err.message)
     } finally {
