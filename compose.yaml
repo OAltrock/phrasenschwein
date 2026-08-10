@@ -52,7 +52,8 @@ services:
       SPRING_DATASOURCE_USERNAME: appuser
       SPRING_DATASOURCE_PASSWORD: apppass
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      SPRING_DEVTOOLS_RESTART_ENABLED: "false"
+      MAVEN_OPTS: "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     volumes:
       - ./backend/src:/app/src
       - ./backend/pom.xml:/app/pom.xml
@@ -60,6 +61,7 @@ services:
     ports:
       - "8080:8080"
       - "35729:35729"
+      - "5005:5005"
     networks:
       - backend-net
   
