@@ -1,69 +1,77 @@
-import { useState } from 'react'
-import { createUser, deleteUser } from '../api/usersApi'
-import UserSelect from './UserSelect'
+import { useState } from "react";
+import { createUser, deleteUser } from "../api/usersApi";
+import SanctionForm from "./SanctionForm";
+import AccountResetForm from "./AccountResetForm";
+import UserSelect from "./UserSelect";
 
 interface AdminPageProps {
-  adminUsername: string
-  onLogout: () => void
+  adminUsername: string;
+  onLogout: () => void;
 }
 
 function AdminPage({ adminUsername, onLogout }: AdminPageProps) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [deleteUsername, setDeleteUsername] = useState<string | null>(null)
-  const [deleteMessage, setDeleteMessage] = useState<string | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [userListKey, setUserListKey] = useState(0)
+  const [deleteUsername, setDeleteUsername] = useState<string | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteWarning, setDeleteWarning] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [userListKey, setUserListKey] = useState(0);
 
   async function handleSubmit(event) {
-    event.preventDefault()
-    setError(null)
-    setMessage(null)
+    event.preventDefault();
+    setError(null);
+    setMessage(null);
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const created = await createUser(username, password)
-      setMessage(`Nutzer "${created.username}" wurde angelegt.`)
-      setUsername('')
-      setPassword('')
-      setUserListKey((key) => key + 1)
+      const created = await createUser(username, password);
+      setMessage(`Nutzer "${created.username}" wurde angelegt.`);
+      setUsername("");
+      setPassword("");
+      setUserListKey((key) => key + 1);
     } catch (err) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
   async function handleDelete(event) {
-    event.preventDefault()
-    setDeleteError(null)
-    setDeleteMessage(null)
+    event.preventDefault();
+    setDeleteError(null);
+    setDeleteWarning(null);
+    setDeleteMessage(null);
 
     if (!deleteUsername) {
-      setDeleteError('Bitte Nutzer auswählen.')
-      return
+      setDeleteError("Bitte Nutzer auswählen.");
+      return;
     }
 
     const confirmed = window.confirm(
-      `Nutzer "${deleteUsername}" wirklich entfernen? Dessen Sanktionshistorie wird ebenfalls gelöscht.`
-    )
-    if (!confirmed) return
+      `Nutzer "${deleteUsername}" wirklich entfernen? Dessen Sanktionshistorie wird ebenfalls gelöscht.`,
+    );
+    if (!confirmed) return;
 
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
-      await deleteUser(deleteUsername)
-      setDeleteMessage(`Nutzer "${deleteUsername}" wurde entfernt.`)
-      setDeleteUsername(null)
-      setUserListKey((key) => key + 1)
+      await deleteUser(deleteUsername);
+      setDeleteMessage(`Nutzer "${deleteUsername}" wurde entfernt.`);
+      setDeleteUsername(null);
+      setUserListKey((key) => key + 1);
     } catch (err) {
-      setDeleteError(err.message)
+      if (err.isBalanceWarning) {
+        setDeleteWarning(err.message);
+      } else {
+        setDeleteError(err.message);
+      }
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
   }
 
@@ -96,31 +104,39 @@ function AdminPage({ adminUsername, onLogout }: AdminPageProps) {
           {error && <p className="login-error">{error}</p>}
           {message && <p>{message}</p>}
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Lege an…' : 'Nutzer anlegen'}
+            {isSubmitting ? "Lege an…" : "Nutzer anlegen"}
           </button>
         </form>
 
         <form className="login-form" onSubmit={handleDelete}>
           <h5>Nutzer entfernen</h5>
           <UserSelect
-            key={userListKey}
+            refreshKey={userListKey}
             value={deleteUsername}
             onChange={setDeleteUsername}
             label="Welcher Nutzer?"
             required
           />
           {deleteError && <p className="login-error">{deleteError}</p>}
+          {deleteWarning && <p className="login-warning">{deleteWarning}</p>}
           {deleteMessage && <p>{deleteMessage}</p>}
           <button type="submit" disabled={isDeleting}>
-            {isDeleting ? 'Entferne…' : 'Nutzer entfernen'}
+            {isDeleting ? "Entferne…" : "Nutzer entfernen"}
           </button>
         </form>
+        <SanctionForm refreshKey={userListKey} />
+        <AccountResetForm refreshKey={userListKey} />
       </section>
-      <button type="button" className="counter" onClick={onLogout} style={{ marginTop: '15px' }}>
+      <button
+        type="button"
+        className="counter"
+        onClick={onLogout}
+        style={{ marginTop: "15vh" }}
+      >
         Log out
       </button>
     </div>
-  )
+  );
 }
 
-export default AdminPage
+export default AdminPage;

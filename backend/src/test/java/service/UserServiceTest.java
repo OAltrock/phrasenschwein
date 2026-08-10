@@ -8,6 +8,7 @@ import dtos.UserSummary;
 import exceptions.ResourceNotFoundException;
 import exceptions.SelfAccountResetException;
 import exceptions.SelfUserDeletionException;
+import exceptions.UserHasBalanceException;
 import exceptions.UsernameAlreadyExistsException;
 import models.FineType;
 import models.Phrase;
@@ -47,6 +48,7 @@ class UserServiceTest {
 
     private PhraseUser actor;
     private PhraseUser user;
+    private PhraseUser zeroBalanceUser;
 
     @BeforeAll
     void seedFineTypes() {
@@ -75,6 +77,12 @@ class UserServiceTest {
         user.setPasswordHash(passwordEncoder.encode("password"));
         user.setAccountBalance(new BigDecimal("13.50"));
         user = phraseUserRepository.save(user);
+
+        zeroBalanceUser = new PhraseUser();
+        zeroBalanceUser.setUsername("zerobalance");
+        zeroBalanceUser.setPasswordHash(passwordEncoder.encode("password"));
+        zeroBalanceUser.setAccountBalance(BigDecimal.ZERO);
+        zeroBalanceUser = phraseUserRepository.save(zeroBalanceUser);
     }
 
     @Test
@@ -118,42 +126,44 @@ class UserServiceTest {
 
     @Test
     void createUserThrowsWhenUsernameAlreadyTaken() {
+        long countBefore = phraseUserRepository.count();
+
         assertThrows(UsernameAlreadyExistsException.class, () ->
                 userService.createUser(new CreateUserRequest(actor.getUsername(), "password123")));
 
-        assertThat(phraseUserRepository.count()).isEqualTo(2);
+        assertThat(phraseUserRepository.count()).isEqualTo(countBefore);
     }
 
     @Test
     void deleteUserRemovesUserWithNoHistory() {
-        userService.deleteUser(user.getUsername(), actor.getId());
+        userService.deleteUser(zeroBalanceUser.getUsername(), actor.getId());
 
-        assertThat(phraseUserRepository.findByUsername("victim")).isEmpty();
+        assertThat(phraseUserRepository.findByUsername("zerobalance")).isEmpty();
     }
 
     @Test
     void deleteUserCascadesSanctionHistoryAsIssuerAndReceiver() {
         FineType fineType = fineTypeRepository.findByName(FineType.Name.STANDARD).orElseThrow();
 
-        Phrase issuedByVictim = new Phrase();
-        issuedByVictim.setIssuer(user);
-        issuedByVictim.setReceiver(actor);
-        issuedByVictim.setFineType(fineType);
-        issuedByVictim.setText("victim war es");
-        phraseRepository.save(issuedByVictim);
+        Phrase issuedByZeroBalanceUser = new Phrase();
+        issuedByZeroBalanceUser.setIssuer(zeroBalanceUser);
+        issuedByZeroBalanceUser.setReceiver(actor);
+        issuedByZeroBalanceUser.setFineType(fineType);
+        issuedByZeroBalanceUser.setText("zerobalance war es");
+        phraseRepository.save(issuedByZeroBalanceUser);
 
-        Phrase receivedByVictim = new Phrase();
-        receivedByVictim.setIssuer(actor);
-        receivedByVictim.setReceiver(user);
-        receivedByVictim.setFineType(fineType);
-        receivedByVictim.setText("actor war es");
-        phraseRepository.save(receivedByVictim);
+        Phrase receivedByZeroBalanceUser = new Phrase();
+        receivedByZeroBalanceUser.setIssuer(actor);
+        receivedByZeroBalanceUser.setReceiver(zeroBalanceUser);
+        receivedByZeroBalanceUser.setFineType(fineType);
+        receivedByZeroBalanceUser.setText("actor war es");
+        phraseRepository.save(receivedByZeroBalanceUser);
 
         assertThat(phraseRepository.count()).isEqualTo(2);
 
-        userService.deleteUser(user.getUsername(), actor.getId());
+        userService.deleteUser(zeroBalanceUser.getUsername(), actor.getId());
 
-        assertThat(phraseUserRepository.findByUsername("victim")).isEmpty();
+        assertThat(phraseUserRepository.findByUsername("zerobalance")).isEmpty();
         assertThat(phraseRepository.count()).isEqualTo(0);
     }
 
@@ -169,5 +179,14 @@ class UserServiceTest {
                 userService.deleteUser(actor.getUsername(), actor.getId()));
 
         assertThat(phraseUserRepository.findByUsername("actor")).isPresent();
+    }
+
+    @Test
+    void deleteUserThrowsWhenUserHasNonZeroBalance() {
+        assertThrows(UserHasBalanceException.class, () ->
+                userService.deleteUser(user.getUsername(), actor.getId()));
+
+        PhraseUser unchanged = phraseUserRepository.findByUsername("victim").orElseThrow();
+        assertThat(unchanged.getAccountBalance()).isEqualByComparingTo("13.50");
     }
 }

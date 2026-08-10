@@ -5,7 +5,11 @@ import UserSelect from './UserSelect'
 
 const MESSAGE_DURATION_MS = 5000
 
-function SanctionForm() {
+interface SanctionFormProps {
+  refreshKey?: number | string
+}
+
+function SanctionForm({ refreshKey }: SanctionFormProps = {}) {
   const [username, setUsername] = useState<string | null>(null)
   const [text, setText] = useState('')
   const [fineType, setFineType] = useState<FineType | null>(null)
@@ -51,7 +55,7 @@ function SanctionForm() {
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <h5>Jemand hat eine hole Phrase benutzt?</h5>
-      <UserSelect value={username} onChange={setUsername} required />
+      <UserSelect value={username} onChange={setUsername} required refreshKey={refreshKey} />
       <FineTypeSelect value={fineType} onChange={setFineType} required />
       <label htmlFor="text">Grund</label>
       <input

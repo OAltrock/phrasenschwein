@@ -6,6 +6,7 @@ import dtos.UserSummary;
 import exceptions.ResourceNotFoundException;
 import exceptions.SelfAccountResetException;
 import exceptions.SelfUserDeletionException;
+import exceptions.UserHasBalanceException;
 import exceptions.UsernameAlreadyExistsException;
 import jakarta.transaction.Transactional;
 import models.PhraseUser;
@@ -67,6 +68,11 @@ public class UserService {
 
         if (user.getId().equals(actingUserId)) {
             throw new SelfUserDeletionException("You cannot delete your own account");
+        }
+
+        if (user.getAccountBalance().compareTo(BigDecimal.ZERO) != 0) {
+            throw new UserHasBalanceException(
+                    "Cannot delete user with a non-zero account balance: " + user.getUsername());
         }
 
         phraseRepository.deleteByIssuerIdOrReceiverId(user.getId());

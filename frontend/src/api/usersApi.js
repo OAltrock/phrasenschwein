@@ -52,6 +52,13 @@ export async function deleteUser(username) {
   });
 
   if (!response.ok) {
+    if (response.status === 409) {
+      const err = new Error(
+        `Nutzer "${username}" kann nicht gelöscht werden: Es befindet sich noch ein Guthaben auf dem Konto. Bitte zuerst das Konto zurücksetzen.`
+      );
+      err.isBalanceWarning = true;
+      throw err;
+    }
     const body = await response.json().catch(() => null);
     throw new Error(body?.message || "Failed to delete user");
   }

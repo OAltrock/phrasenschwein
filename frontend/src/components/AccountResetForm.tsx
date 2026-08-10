@@ -3,10 +3,11 @@ import { resetAccount } from '../api/usersApi'
 import UserSelect from './UserSelect'
 
 interface AccountResetFormProps {
-  currentUsername: string
+  currentUsername?: string
+  refreshKey?: number | string
 }
 
-function AccountResetForm({ currentUsername }: AccountResetFormProps) {
+function AccountResetForm({ currentUsername, refreshKey }: AccountResetFormProps = {}) {
   const [username, setUsername] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -42,6 +43,7 @@ function AccountResetForm({ currentUsername }: AccountResetFormProps) {
         label="Welches Konto?"
         required
         excludeUsername={currentUsername}
+        refreshKey={refreshKey}
       />
       {error && <p className="login-error">{error}</p>}
       {message && <p>{message}</p>}

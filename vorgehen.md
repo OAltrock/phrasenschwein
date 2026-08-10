@@ -39,6 +39,10 @@
         - dependencies (hibernate, security, mariaDB, lombok (qol) )</li>
     <li>frontend programmieren:</li>
         - wenig frameworks (redux, atkquery unnötig für aufgabe)
+    <li>probleme:</li>
+        <ul>
+            <li>nutzer löschung is cascading (alle phrasen dieses nutzers werden gelöscht)</li>
+        </ul>
     <li>verbesserungen:</li>
         <ul>
             <li>nur nutzer mit guthaben werden im reset dropdown angezeigt</li>

@@ -43,8 +43,8 @@ function App() {
           Willkommen beim Phrasenschwein, wo hohle Phrasen reale Konsequenzen
           haben!
         </h2>
-        <section id="center">
-          <LoginForm onLoginSuccess={handleLoginSuccess} />
+        <section id="center" style={{ alignItems: 'baseline', justifyContent: 'space-around'}}>
+          <LoginForm onLoginSuccess={handleLoginSuccess} />          
           <RecentSanctionsList onShowAll={() => setShowAllSanctions(true)} />
         </section>
       </div>
@@ -63,7 +63,7 @@ function App() {
         <SanctionForm />
         <AccountResetForm currentUsername={auth.username} />
       </section>
-      <button type="button" className="counter" onClick={handleLogout} style={{ marginTop: '15px'}}>
+      <button type="button" className="counter" onClick={handleLogout} >
         Log out
       </button>
     </div>

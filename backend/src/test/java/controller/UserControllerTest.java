@@ -228,13 +228,33 @@ class UserControllerTest {
 
     @Test
     void deleteUserAsAdminReturns204AndRemovesUser() {
+        PhraseUser deletable = new PhraseUser();
+        deletable.setUsername("deletable");
+        deletable.setPasswordHash(passwordEncoder.encode("password"));
+        deletable.setAccountBalance(BigDecimal.ZERO);
+        phraseUserRepository.save(deletable);
+
         restClient.delete()
-                .uri("/api/users/{username}", victim.getUsername())
+                .uri("/api/users/{username}", deletable.getUsername())
                 .header("Authorization", "Bearer " + adminToken)
                 .retrieve()
                 .toBodilessEntity();
 
-        assertThat(phraseUserRepository.findByUsername("victim")).isEmpty();
+        assertThat(phraseUserRepository.findByUsername("deletable")).isEmpty();
+    }
+
+    @Test
+    void deleteUserWithNonZeroBalanceAsAdminReturns409() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.delete()
+                        .uri("/api/users/{username}", victim.getUsername())
+                        .header("Authorization", "Bearer " + adminToken)
+                        .retrieve()
+                        .toBodilessEntity());
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(phraseUserRepository.findByUsername("victim")).isPresent();
     }
 
     @Test

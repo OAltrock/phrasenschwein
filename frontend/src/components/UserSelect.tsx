@@ -14,6 +14,7 @@ interface UserSelectProps {
   disabled?: boolean
   required?: boolean
   excludeUsername?: string | null
+  refreshKey?: number | string
 }
 
 export default function UserSelect({
@@ -23,6 +24,7 @@ export default function UserSelect({
   disabled = false,
   required = false,
   excludeUsername = null,
+  refreshKey,
 }: UserSelectProps) {
   const [users, setUsers] = useState<UserOption[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,7 +57,7 @@ export default function UserSelect({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [refreshKey])
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {

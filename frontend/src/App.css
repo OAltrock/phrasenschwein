@@ -28,7 +28,7 @@
   place-content: center;
   place-items: center;
   flex-grow: 1;
-  align-items: baseline;
+  align-items: end;
 
   @media (max-width: 1024px) {
     padding: 32px 20px 24px;
