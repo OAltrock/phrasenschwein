@@ -97,7 +97,7 @@ class UserControllerTest {
     void resetAccountOverHttpZeroesBalanceAndReturns200() {
         AccountResetResponse response = restClient.post()
                 .uri("/api/users/reset")
-                .header("Authorization", "Bearer " + token)
+                .header("Authorization", "Bearer " + adminToken)
                 .body(new AccountResetRequest(victim.getUsername()))
                 .retrieve()
                 .body(AccountResetResponse.class);
@@ -124,12 +124,29 @@ class UserControllerTest {
     }
 
     @Test
-    void resetAccountWithUnknownUserReturns404() {
+    void resetAccountAsNonAdminIsForbidden() {
         RestClientResponseException ex = assertThrows(
                 RestClientResponseException.class,
                 () -> restClient.post()
                         .uri("/api/users/reset")
                         .header("Authorization", "Bearer " + token)
+                        .body(new AccountResetRequest(victim.getUsername()))
+                        .retrieve()
+                        .body(AccountResetResponse.class));
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        PhraseUser unchangedVictim = phraseUserRepository.findById(victim.getId()).orElseThrow();
+        assertThat(unchangedVictim.getAccountBalance()).isEqualByComparingTo("7.50");
+    }
+
+    @Test
+    void resetAccountWithUnknownUserReturns404() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.post()
+                        .uri("/api/users/reset")
+                        .header("Authorization", "Bearer " + adminToken)
                         .body(new AccountResetRequest("no-such-user"))
                         .retrieve()
                         .body(AccountResetResponse.class));
@@ -138,20 +155,20 @@ class UserControllerTest {
     }
 
     @Test
-    void resetOwnAccountReturns400AndLeavesBalanceUnchanged() {
+    void resetOwnAccountAsAdminReturns400AndLeavesBalanceUnchanged() {
         RestClientResponseException ex = assertThrows(
                 RestClientResponseException.class,
                 () -> restClient.post()
                         .uri("/api/users/reset")
-                        .header("Authorization", "Bearer " + token)
-                        .body(new AccountResetRequest(actor.getUsername()))
+                        .header("Authorization", "Bearer " + adminToken)
+                        .body(new AccountResetRequest(admin.getUsername()))
                         .retrieve()
                         .body(AccountResetResponse.class));
 
         assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
-        PhraseUser updatedActor = phraseUserRepository.findById(actor.getId()).orElseThrow();
-        assertThat(updatedActor.getAccountBalance()).isEqualByComparingTo("4.00");
+        PhraseUser updatedAdmin = phraseUserRepository.findById(admin.getId()).orElseThrow();
+        assertThat(updatedAdmin.getAccountBalance()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test

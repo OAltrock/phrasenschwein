@@ -1,7 +1,6 @@
 import { useState } from "react";
 import LoginForm from "./components/LoginForm";
 import SanctionForm from "./components/SanctionForm";
-import AccountResetForm from "./components/AccountResetForm";
 import RecentSanctionsList from "./components/RecentSanctionsList";
 import AllSanctionsPage from "./components/AllSanctionsPage";
 import AdminPage from "./components/AdminPage";
@@ -61,9 +60,8 @@ function App() {
       <p>You are logged in.</p>
       <section id="center">
         <SanctionForm />
-        <AccountResetForm currentUsername={auth.username} />
       </section>
-      <button type="button" className="counter" onClick={handleLogout} >
+      <button type="button" className="counter" onClick={handleLogout} style={{ marginTop: '15vh' }} >
         Log out
       </button>
     </div>
