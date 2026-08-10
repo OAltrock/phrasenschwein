@@ -21,10 +21,17 @@
       </ul> 
   <li>versionsverwaltung</li>
   <ul>
-    <li>git (vertautheit</li>
-    <li>ermöglicht entwicklungsstufen (rückkehr/auschecken/abnahme</li>
+    <li>git (vertautheit)</li>
+    <li>ermöglicht entwicklungsstufen (rückkehr/auschecken/abnahme: gewählt: 
+    <ul>
+    <li>branches für einzelne features (z.b.: sanctioning, account-reset usw. + tags (0.x.y wobei x für stufe steht und y für feature)</li>
+    <li>neue feature branches zweigen von vorhergehenden ab -> spätere features enthalten alle vorhergehenden (stufen implizieren sukzessiven aufbau)</li>
+    </ul>
+    </li>
     <li>üblichen vorteile vcs: sichere featureentwicklung, zusammenarbeit und ci/cd (letzten 2 hier theoretisch)</li>
   </ul>
   <li>backend programmieren:</li>
       - dependencies (hibernate, security, mariaDB, lombok (qol) )</li>
+  <li>frontend programmieren:</li>
+      - wenig frameworks (redux, atkquery unnötig für aufgabe)
   </ol>

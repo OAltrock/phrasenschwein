@@ -14,3 +14,18 @@ export async function fetchUsers() {
 
   return response.json();
 }
+
+export async function resetAccount(username) {
+  const response = await fetch(`${API_URL}/api/users/reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeader() },
+    body: JSON.stringify({ username }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "Failed to reset account");
+  }
+
+  return response.json();
+}

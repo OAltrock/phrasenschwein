@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import LoginForm from './components/LoginForm'
 import SanctionForm from './components/SanctionForm'
+import AccountResetForm from './components/AccountResetForm'
 import './App.css'
 
 const STORAGE_KEY = 'phrasenschwein.auth'
@@ -35,13 +36,12 @@ function App() {
     )
   }
 
-  console.log(JSON.parse(localStorage.getItem(STORAGE_KEY)))
-
   return (       
     <section id="center">
       <h1>Welcome, {auth.username}</h1>
       <p>You are logged in.</p>
       <SanctionForm />
+      <AccountResetForm currentUsername={auth.username} />
       <button type="button" className="counter" onClick={handleLogout}>
         Log out
       </button>

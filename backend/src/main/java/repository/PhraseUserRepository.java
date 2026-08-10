@@ -16,4 +16,8 @@ public interface PhraseUserRepository extends JpaRepository<PhraseUser, Long> {
     @Modifying(clearAutomatically = true)
     @Query("UPDATE PhraseUser u SET u.accountBalance = u.accountBalance + :amount WHERE u.id = :id")
     void addToAccountBalance(@Param("id") Long id, @Param("amount") BigDecimal amount);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE PhraseUser u SET u.accountBalance = 0 WHERE u.id = :id")
+    void resetAccountBalance(@Param("id") Long id);
 }

@@ -13,6 +13,7 @@ interface UserSelectProps {
   label?: string
   disabled?: boolean
   required?: boolean
+  excludeUsername?: string | null
 }
 
 export default function UserSelect({
@@ -21,6 +22,7 @@ export default function UserSelect({
   label = 'Wer war es?',
   disabled = false,
   required = false,
+  excludeUsername = null,
 }: UserSelectProps) {
   const [users, setUsers] = useState<UserOption[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +33,11 @@ export default function UserSelect({
   const listRef = useRef<HTMLUListElement>(null)
   const listboxId = useId()
 
-  const selected = users.find((u) => u.username === value) ?? null
+  const selectableUsers = excludeUsername
+    ? users.filter((u) => u.username !== excludeUsername)
+    : users
+
+  const selected = selectableUsers.find((u) => u.username === value) ?? null
 
   useEffect(() => {
     let cancelled = false
@@ -63,13 +69,13 @@ export default function UserSelect({
 
   useEffect(() => {
     if (open) {
-      const idx = selected ? users.findIndex((u) => u.username === selected.username) : 0
+      const idx = selected ? selectableUsers.findIndex((u) => u.username === selected.username) : 0
       setActiveIndex(idx === -1 ? 0 : idx)
     }
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function commit(index: number) {
-    onChange(users[index].username)
+    onChange(selectableUsers[index].username)
     setOpen(false)
   }
 
@@ -84,7 +90,7 @@ export default function UserSelect({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
-        setActiveIndex((i) => Math.min(i + 1, users.length - 1))
+        setActiveIndex((i) => Math.min(i + 1, selectableUsers.length - 1))
         break
       case 'ArrowUp':
         e.preventDefault()
@@ -93,7 +99,7 @@ export default function UserSelect({
       case 'Enter':
       case ' ':
         e.preventDefault()
-        if (users.length > 0) commit(activeIndex)
+        if (selectableUsers.length > 0) commit(activeIndex)
         break
       case 'Escape':
         e.preventDefault()
@@ -102,7 +108,7 @@ export default function UserSelect({
     }
   }
 
-  const isDisabled = disabled || loading || !!error || users.length === 0
+  const isDisabled = disabled || loading || !!error || selectableUsers.length === 0
 
   return (
     <div className="user-select" ref={containerRef}>
@@ -244,7 +250,7 @@ export default function UserSelect({
           ref={listRef}
           aria-labelledby={`${listboxId}-label`}
         >
-          {users.map((user, index) => {
+          {selectableUsers.map((user, index) => {
             const isSelected = selected?.username === user.username
             const isActive = index === activeIndex
             return (
