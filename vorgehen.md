@@ -3,35 +3,45 @@
           # -> keine gesonderten anforderungen -> spring (security/db-driver/hibernate(hauptsächlich locking und dirty checking))/react; docker (bzw. podman) bietet sich trotzdem an: insbesondere weil "echte" statt h2 db und leichtere migration in prod für wenig mehraufwand
 
   <ol type="a">
-  <li>er diagramm erstellen</li>
-  <li>lightweight docker images erstellen</li>
-      - deswegen: alpine und mariaDB(alpine:maria existiert nicht mehr)
-  <li>db schemas erstellen und bevölkern</li>
-      - indexierung für 10 letzten strafen (häufig benutzt)</br>
-      - strafen mit types: 
-       <ul>
-       <li>soll nur 3 strafen geben</li>
-       2 optionen: 
-          <ol>
-           <li>strafbetrag in db: vorteile für deploy (muss nicht neu deployed werden, wenn sich strafe ändert)</li>
-           <li> strafbetrag im backend: schneller und einfacher</li>
-          </ol>
-      </li>
-      <li>(optional) admin aktionen als type: macht admin aktionen nachvollziehbar/zeichnet history der aktionen auf</li>
-      </ul> 
-  <li>versionsverwaltung</li>
-  <ul>
-    <li>git (vertautheit)</li>
-    <li>ermöglicht entwicklungsstufen (rückkehr/auschecken/abnahme: gewählt: 
+    <li>er diagramm erstellen</li>
+    <li>lightweight docker images erstellen</li>
+        - deswegen: alpine und mariaDB(alpine:maria existiert nicht mehr)
+    <li>db schemas erstellen und bevölkern</li>
+        - indexierung für 10 letzten strafen (häufig benutzt)</br>
+        - strafen mit types: 
+        <ul>
+        <li>soll nur 3 strafen geben</li>
+        2 optionen: 
+            <ol>
+            <li>strafbetrag in db: vorteile für deploy (muss nicht neu deployed werden, wenn sich strafe ändert)</li>
+            <li> strafbetrag im backend: schneller und einfacher</li>
+            </ol>
+        </li>
+        <li>(optional) admin aktionen als type: macht admin aktionen nachvollziehbar/zeichnet history der aktionen auf</li>
+        </ul> 
+    <li>versionsverwaltung</li>
     <ul>
-    <li>branches für einzelne features (z.b.: sanctioning, account-reset usw. + tags (0.x.y wobei x für stufe steht und y für feature)</li>
-    <li>neue feature branches zweigen von vorhergehenden ab -> spätere features enthalten alle vorhergehenden (stufen implizieren sukzessiven aufbau)</li>
+        <li>git (vertautheit)</li>
+        <li>ermöglicht entwicklungsstufen (rückkehr/auschecken/abnahme: gewählt: 
+        <ul>
+        <li>branches für einzelne features (z.b.: sanctioning, account-reset usw. + tags (0.x.y wobei x für stufe steht und y für feature)</li>
+        <li>neue feature branches zweigen von vorhergehenden ab -> spätere features enthalten alle vorhergehenden (stufen implizieren sukzessiven aufbau)</li>
+        </ul>
+        </li>
+        <li>üblichen vorteile vcs: sichere featureentwicklung, zusammenarbeit und ci/cd (letzten 2 hier theoretisch)</li>
+        <li>zu fortschrittspunkten:</li>
+            <ul>
+                <li>straftypen direkt hinzugefügt, da es sich direkt aus dem schema ergab</li>
+                <li>gleiches für admin</li>
+                <li>0.2.1 akzeptanz: ich logge mich als admin ein und gelange nicht auf die phrase user seite, sondern auf eine seite, die mir admin aktionen ermöglicht</li>
     </ul>
-    </li>
-    <li>üblichen vorteile vcs: sichere featureentwicklung, zusammenarbeit und ci/cd (letzten 2 hier theoretisch)</li>
-  </ul>
-  <li>backend programmieren:</li>
-      - dependencies (hibernate, security, mariaDB, lombok (qol) )</li>
-  <li>frontend programmieren:</li>
-      - wenig frameworks (redux, atkquery unnötig für aufgabe)
+    <li>backend programmieren:</li>
+        - dependencies (hibernate, security, mariaDB, lombok (qol) )</li>
+    <li>frontend programmieren:</li>
+        - wenig frameworks (redux, atkquery unnötig für aufgabe)
+    <li>verbesserungen:</li>
+        <ul>
+            <li>nur nutzer mit guthaben werden im reset dropdown angezeigt</li>
+        </ul>
   </ol>
+

@@ -4,6 +4,7 @@ public record LoginResponse(
         String token,
         String tokenType,
         String username,
-        long expiresInMillis
+        long expiresInMillis,
+        boolean admin
 ) {
 }

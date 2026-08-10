@@ -2,8 +2,10 @@ package controller;
 
 import dtos.AccountResetRequest;
 import dtos.AccountResetResponse;
+import dtos.CreateUserRequest;
 import dtos.UserSummary;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,7 @@ public class UserController {
     @GetMapping
     public List<UserSummary> listUsers() {
         return phraseUserRepository.findAll().stream()
+                .filter(user -> !user.isAdmin())
                 .map(user -> new UserSummary(user.getId(), user.getUsername()))
                 .sorted(Comparator.comparing(UserSummary::username, String.CASE_INSENSITIVE_ORDER))
                 .toList();
@@ -43,5 +46,11 @@ public class UserController {
                                                                @AuthenticationPrincipal PhraseUserPrincipal principal) {
         AccountResetResponse response = userService.resetAccountBalance(request.username(), principal.getId());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<UserSummary> createUser(@Valid @RequestBody CreateUserRequest request) {
+        UserSummary response = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

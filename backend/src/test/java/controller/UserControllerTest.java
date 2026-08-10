@@ -4,8 +4,10 @@ import com.convales.phrasenschwein.PhrasenSchweinApplication;
 import com.convales.phrasenschwein.TestcontainersConfiguration;
 import dtos.AccountResetRequest;
 import dtos.AccountResetResponse;
+import dtos.CreateUserRequest;
 import dtos.LoginRequest;
 import dtos.LoginResponse;
+import dtos.UserSummary;
 import models.PhraseUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,9 @@ class UserControllerTest {
     private RestClient restClient;
     private PhraseUser actor;
     private PhraseUser victim;
+    private PhraseUser admin;
     private String token;
+    private String adminToken;
 
     @BeforeEach
     void setUp() {
@@ -63,6 +67,13 @@ class UserControllerTest {
         victim.setAccountBalance(new BigDecimal("7.50"));
         phraseUserRepository.save(victim);
 
+        admin = new PhraseUser();
+        admin.setUsername("admin-user");
+        admin.setPasswordHash(passwordEncoder.encode("password"));
+        admin.setAccountBalance(BigDecimal.ZERO);
+        admin.setAdmin(true);
+        phraseUserRepository.save(admin);
+
         restClient = RestClient.builder().baseUrl("http://localhost:" + port).build();
 
         LoginResponse login = restClient.post()
@@ -71,6 +82,15 @@ class UserControllerTest {
                 .retrieve()
                 .body(LoginResponse.class);
         token = login.token();
+        assertThat(login.admin()).isFalse();
+
+        LoginResponse adminLogin = restClient.post()
+                .uri("/api/auth/login")
+                .body(new LoginRequest("admin-user", "password"))
+                .retrieve()
+                .body(LoginResponse.class);
+        adminToken = adminLogin.token();
+        assertThat(adminLogin.admin()).isTrue();
     }
 
     @Test
@@ -132,5 +152,77 @@ class UserControllerTest {
 
         PhraseUser updatedActor = phraseUserRepository.findById(actor.getId()).orElseThrow();
         assertThat(updatedActor.getAccountBalance()).isEqualByComparingTo("4.00");
+    }
+
+    @Test
+    void createUserAsAdminReturns201AndPersistsNonAdminUser() {
+        UserSummary response = restClient.post()
+                .uri("/api/users")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(new CreateUserRequest("newbie", "password123"))
+                .retrieve()
+                .body(UserSummary.class);
+
+        assertThat(response).isNotNull();
+        assertThat(response.username()).isEqualTo("newbie");
+
+        PhraseUser created = phraseUserRepository.findByUsername("newbie").orElseThrow();
+        assertThat(created.isAdmin()).isFalse();
+    }
+
+    @Test
+    void createUserAsNonAdminIsForbidden() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.post()
+                        .uri("/api/users")
+                        .header("Authorization", "Bearer " + token)
+                        .body(new CreateUserRequest("newbie", "password123"))
+                        .retrieve()
+                        .body(UserSummary.class));
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(phraseUserRepository.findByUsername("newbie")).isEmpty();
+    }
+
+    @Test
+    void createUserWithoutTokenIsRejected() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.post()
+                        .uri("/api/users")
+                        .body(new CreateUserRequest("newbie", "password123"))
+                        .retrieve()
+                        .body(UserSummary.class));
+
+        assertThat(ex.getStatusCode().is4xxClientError()).isTrue();
+    }
+
+    @Test
+    void listUsersExcludesAdmins() {
+        UserSummary[] users = restClient.get()
+                .uri("/api/users")
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(UserSummary[].class);
+
+        assertThat(users).isNotNull();
+        assertThat(users).extracting(UserSummary::username)
+                .containsExactlyInAnyOrder("actor", "victim")
+                .doesNotContain("admin-user");
+    }
+
+    @Test
+    void createUserWithDuplicateUsernameAsAdminReturns409() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.post()
+                        .uri("/api/users")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .body(new CreateUserRequest(actor.getUsername(), "password123"))
+                        .retrieve()
+                        .body(UserSummary.class));
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
 }

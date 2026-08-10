@@ -4,6 +4,7 @@ import SanctionForm from "./components/SanctionForm";
 import AccountResetForm from "./components/AccountResetForm";
 import RecentSanctionsList from "./components/RecentSanctionsList";
 import AllSanctionsPage from "./components/AllSanctionsPage";
+import AdminPage from "./components/AdminPage";
 import "./App.css";
 
 const STORAGE_KEY = "phrasenschwein.auth";
@@ -48,6 +49,10 @@ function App() {
         </section>
       </div>
     );
+  }
+
+  if (auth.admin) {
+    return <AdminPage adminUsername={auth.username} onLogout={handleLogout} />;
   }
 
   return (

@@ -29,3 +29,18 @@ export async function resetAccount(username) {
 
   return response.json();
 }
+
+export async function createUser(username, password) {
+  const response = await fetch(`${API_URL}/api/users`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeader() },
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "Failed to create user");
+  }
+
+  return response.json();
+}

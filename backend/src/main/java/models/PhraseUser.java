@@ -31,4 +31,7 @@ public class PhraseUser {
 
     @Column(name = "account_balance", nullable = false, precision = 12, scale = 2)
     private BigDecimal accountBalance = BigDecimal.ZERO;
+
+    @Column(name = "is_admin", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
+    private boolean admin = false;
 }

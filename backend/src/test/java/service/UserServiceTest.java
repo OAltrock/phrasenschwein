@@ -3,8 +3,11 @@ package service;
 import com.convales.phrasenschwein.PhrasenSchweinApplication;
 import com.convales.phrasenschwein.TestcontainersConfiguration;
 import dtos.AccountResetResponse;
+import dtos.CreateUserRequest;
+import dtos.UserSummary;
 import exceptions.ResourceNotFoundException;
 import exceptions.SelfAccountResetException;
+import exceptions.UsernameAlreadyExistsException;
 import models.PhraseUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,5 +83,26 @@ class UserServiceTest {
 
         PhraseUser unchanged = phraseUserRepository.findById(user.getId()).orElseThrow();
         assertThat(unchanged.getAccountBalance()).isEqualByComparingTo("13.50");
+    }
+
+    @Test
+    void createUserPersistsNewNonAdminUserWithZeroBalance() {
+        UserSummary response = userService.createUser(new CreateUserRequest("newbie", "password123"));
+
+        assertThat(response.username()).isEqualTo("newbie");
+
+        PhraseUser created = phraseUserRepository.findByUsername("newbie").orElseThrow();
+        assertThat(created.getId()).isEqualTo(response.id());
+        assertThat(created.isAdmin()).isFalse();
+        assertThat(created.getAccountBalance()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(passwordEncoder.matches("password123", created.getPasswordHash())).isTrue();
+    }
+
+    @Test
+    void createUserThrowsWhenUsernameAlreadyTaken() {
+        assertThrows(UsernameAlreadyExistsException.class, () ->
+                userService.createUser(new CreateUserRequest(actor.getUsername(), "password123")));
+
+        assertThat(phraseUserRepository.count()).isEqualTo(2);
     }
 }
