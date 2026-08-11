@@ -8,7 +8,7 @@
       <li>lightweight docker images erstellen</li>
           - deswegen: alpine und mariaDB(alpine:maria existiert nicht mehr)
       <li>db schemas erstellen und bevölkern</li>
-          - indexierung für 10 letzten strafen (häufig benutzt)</br>
+          - indexierung für 10 letzten strafen/likes unique constraint (implizit auch phrase_id)-> häufig benutzt. andere werden über fk implizit erstellt</br>
           - strafen mit types: 
           <ul>
           <li>soll nur 3 strafen geben</li>
@@ -58,6 +58,9 @@
         </ul>
     <li>verbesserungen:</li>
         <ul>
+            <li>konto balance nirgendwo sichtbar</li>
             <li>nur nutzer mit guthaben werden im reset dropdown angezeigt</li>
+            <li>admin kann liken</li>
+            <li>eigene strafe liken</li>            
         </ul>
 

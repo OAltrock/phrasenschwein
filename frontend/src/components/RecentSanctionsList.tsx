@@ -29,19 +29,9 @@ function RecentSanctionsList({ onShowAll }: RecentSanctionsListProps) {
   }, []);
 
   return (
-    <div style={{flexGrow:'2', border: '2px solid #371952', }}>
+    <div className="recent-sanctions-panel">
       <h5>Letzte Sanktionen</h5>
-      <div
-        className="recent-sanctions"
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          maxHeight: "80vh",
-          overflowY: "auto",
-          minWidth: "50vw",          
-          padding: '3px',
-        }}
-      >
+      <div className="recent-sanctions recent-sanctions-scroll">
         {loading && <p>Lade…</p>}
         {error && <p className="login-error">{error}</p>}
         {!loading && !error && sanctions.length === 0 && (
@@ -65,15 +55,10 @@ function RecentSanctionsList({ onShowAll }: RecentSanctionsListProps) {
             ))}
           </ul>
         )}
-        <button
-          type="button"
-          className="counter"
-          onClick={onShowAll}
-          style={{ maxHeight: "9vh", naxWidth: '12vw', margin: '0 1vw', position: 'sticky', top: '1', alignSelf: 'flex-start' }}
-        >
-          Alle Sanktionen anzeigen
-        </button>
       </div>
+      <button type="button" className="counter recent-sanctions-show-all" onClick={onShowAll}>
+        Alle Sanktionen anzeigen
+      </button>
     </div>
   );
 }

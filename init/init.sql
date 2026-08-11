@@ -27,10 +27,12 @@ CREATE INDEX idx_fine_issued_at ON phrase (issued_at DESC);
 
 CREATE TABLE IF NOT EXISTS phrase_like (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    phrase_id  INT UNSIGNED NOT NULL REFERENCES phrase(id),
-    user_id    INT UNSIGNED NOT NULL REFERENCES phrase_user(id),
+    phrase_id  INT UNSIGNED NOT NULL,
+    user_id    INT UNSIGNED NOT NULL,
     liked_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uk_phrase_like_phrase_user UNIQUE (phrase_id, user_id)
+    CONSTRAINT uk_phrase_like_phrase_user UNIQUE (phrase_id, user_id),
+    CONSTRAINT fk_phrase_like_phrase FOREIGN KEY (phrase_id) REFERENCES phrase(id) ON DELETE CASCADE,
+    CONSTRAINT fk_phrase_like_user FOREIGN KEY (user_id) REFERENCES phrase_user(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 INSERT INTO fine_type (name) VALUES

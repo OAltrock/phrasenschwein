@@ -12,6 +12,7 @@ import exceptions.UserHasBalanceException;
 import exceptions.UsernameAlreadyExistsException;
 import models.FineType;
 import models.Phrase;
+import models.PhraseLike;
 import models.PhraseUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -169,6 +170,52 @@ class UserServiceTest {
 
         assertThat(phraseUserRepository.findByUsername("zerobalance")).isEmpty();
         assertThat(phraseRepository.count()).isEqualTo(0);
+    }
+
+    @Test
+    void deleteUserCascadesLikesOnOwnSanctions() {
+        FineType fineType = fineTypeRepository.findByName(FineType.Name.STANDARD).orElseThrow();
+
+        Phrase issuedByZeroBalanceUser = new Phrase();
+        issuedByZeroBalanceUser.setIssuer(zeroBalanceUser);
+        issuedByZeroBalanceUser.setReceiver(actor);
+        issuedByZeroBalanceUser.setFineType(fineType);
+        issuedByZeroBalanceUser.setText("zerobalance war es");
+        issuedByZeroBalanceUser = phraseRepository.save(issuedByZeroBalanceUser);
+
+        PhraseLike like = new PhraseLike();
+        like.setPhrase(issuedByZeroBalanceUser);
+        like.setUser(actor);
+        phraseLikeRepository.save(like);
+
+        userService.deleteUser(zeroBalanceUser.getUsername(), actor.getId());
+
+        assertThat(phraseUserRepository.findByUsername("zerobalance")).isEmpty();
+        assertThat(phraseRepository.count()).isEqualTo(0);
+        assertThat(phraseLikeRepository.count()).isEqualTo(0);
+    }
+
+    @Test
+    void deleteUserRemovesLikesMadeByTheDeletedUser() {
+        FineType fineType = fineTypeRepository.findByName(FineType.Name.STANDARD).orElseThrow();
+
+        Phrase phrase = new Phrase();
+        phrase.setIssuer(actor);
+        phrase.setReceiver(user);
+        phrase.setFineType(fineType);
+        phrase.setText("actor war es");
+        phrase = phraseRepository.save(phrase);
+
+        PhraseLike like = new PhraseLike();
+        like.setPhrase(phrase);
+        like.setUser(zeroBalanceUser);
+        phraseLikeRepository.save(like);
+
+        userService.deleteUser(zeroBalanceUser.getUsername(), actor.getId());
+
+        assertThat(phraseUserRepository.findByUsername("zerobalance")).isEmpty();
+        assertThat(phraseRepository.count()).isEqualTo(1);
+        assertThat(phraseLikeRepository.count()).isEqualTo(0);
     }
 
     @Test

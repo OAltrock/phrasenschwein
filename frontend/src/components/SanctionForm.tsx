@@ -41,10 +41,8 @@ function SanctionForm({ refreshKey }: SanctionFormProps = {}) {
 
     setIsSubmitting(true)
     try {
-      console.log(fineType)
-      const resp = await sanction( username, fineType, text)
-      console.log(resp)
-      showMessage(`Auf dem Konto von ${resp.receiver} wurde wurde eine ${fineType.toLowerCase()} Strafe erhoben.`)
+      const resp = await sanction(username, fineType, text)
+      showMessage(`Auf dem Konto von ${resp.receiver} wurde eine ${fineType.toLowerCase()} Strafe erhoben.`)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -65,7 +63,7 @@ function SanctionForm({ refreshKey }: SanctionFormProps = {}) {
         onChange={(event) => setText(event.target.value)}
       />
       {error && <p className="login-error">{error}</p>}
-      {message && <p>{message}</p>}
+      {message && <p className="login-success">{message}</p>}
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Submitting…' : 'Sanktioniere'}
       </button>      

@@ -46,7 +46,7 @@ function AccountResetForm({ currentUsername, refreshKey }: AccountResetFormProps
         refreshKey={refreshKey}
       />
       {error && <p className="login-error">{error}</p>}
-      {message && <p>{message}</p>}
+      {message && <p className="login-success">{message}</p>}
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Setze zurück…' : 'Konto auf 0 setzen'}
       </button>

@@ -3,6 +3,7 @@ import { createUser, deleteUser } from "../api/usersApi";
 import SanctionForm from "./SanctionForm";
 import AccountResetForm from "./AccountResetForm";
 import UserSelect from "./UserSelect";
+import AppHeader from "./AppHeader";
 
 interface AdminPageProps {
   adminUsername: string;
@@ -78,8 +79,12 @@ function AdminPage({ adminUsername, onLogout, onShowAllSanctions }: AdminPagePro
 
   return (
     <div id="main">
-      <h1>Willkommen, {adminUsername}</h1>
-      <p>Du bist als Admin eingeloggt.</p>
+      <AppHeader
+        title={`Willkommen, ${adminUsername}`}
+        subtitle="Du bist als Admin eingeloggt."
+        onShowAllSanctions={onShowAllSanctions}
+        onLogout={onLogout}
+      />
       <section id="center">
         <form className="login-form" onSubmit={handleSubmit}>
           <h5>Nutzer hinzufügen</h5>
@@ -103,7 +108,7 @@ function AdminPage({ adminUsername, onLogout, onShowAllSanctions }: AdminPagePro
             required
           />
           {error && <p className="login-error">{error}</p>}
-          {message && <p>{message}</p>}
+          {message && <p className="login-success">{message}</p>}
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Lege an…" : "Nutzer anlegen"}
           </button>
@@ -120,7 +125,7 @@ function AdminPage({ adminUsername, onLogout, onShowAllSanctions }: AdminPagePro
           />
           {deleteError && <p className="login-error">{deleteError}</p>}
           {deleteWarning && <p className="login-warning">{deleteWarning}</p>}
-          {deleteMessage && <p>{deleteMessage}</p>}
+          {deleteMessage && <p className="login-success">{deleteMessage}</p>}
           <button type="submit" disabled={isDeleting}>
             {isDeleting ? "Entferne…" : "Nutzer entfernen"}
           </button>
@@ -128,17 +133,6 @@ function AdminPage({ adminUsername, onLogout, onShowAllSanctions }: AdminPagePro
         <SanctionForm refreshKey={userListKey} />
         <AccountResetForm refreshKey={userListKey} />
       </section>
-      <button type="button" className="counter" onClick={onShowAllSanctions} style={{ marginRight: '1vw' }}>
-        Alle Sanktionen anzeigen
-      </button>
-      <button
-        type="button"
-        className="counter"
-        onClick={onLogout}
-        style={{ marginTop: "15vh" }}
-      >
-        Log out
-      </button>
     </div>
   );
 }

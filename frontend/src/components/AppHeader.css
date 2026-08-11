@@ -1,0 +1,32 @@
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.app-header h1 {
+  font-size: 28px;
+  margin: 0;
+  letter-spacing: -0.4px;
+}
+
+.app-header-subtitle {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.app-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.app-header-actions .counter {
+  margin-bottom: 0;
+}

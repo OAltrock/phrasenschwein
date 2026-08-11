@@ -13,6 +13,7 @@ import models.PhraseUser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import repository.PhraseLikeRepository;
 import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
@@ -25,12 +26,14 @@ public class UserService {
 
     private final PhraseUserRepository phraseUserRepository;
     private final PhraseRepository phraseRepository;
+    private final PhraseLikeRepository phraseLikeRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(PhraseUserRepository phraseUserRepository, PhraseRepository phraseRepository,
-                        PasswordEncoder passwordEncoder) {
+                        PhraseLikeRepository phraseLikeRepository, PasswordEncoder passwordEncoder) {
         this.phraseUserRepository = phraseUserRepository;
         this.phraseRepository = phraseRepository;
+        this.phraseLikeRepository = phraseLikeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -75,7 +78,9 @@ public class UserService {
                     "Cannot delete user with a non-zero account balance: " + user.getUsername());
         }
 
+        phraseLikeRepository.deleteByPhraseIssuerIdOrReceiverId(user.getId());
         phraseRepository.deleteByIssuerIdOrReceiverId(user.getId());
+        phraseLikeRepository.deleteByUserId(user.getId());
         phraseUserRepository.delete(user);
     }
 }

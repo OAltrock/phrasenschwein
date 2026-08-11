@@ -25,7 +25,7 @@ function LoginForm({ onLoginSuccess }) {
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <h3>Log in</h3>      
-      <label htmlFor="username">Username</label>
+      <label htmlFor="username">Nutzer</label>
       <input
         id="username"
         type="text"
@@ -34,7 +34,7 @@ function LoginForm({ onLoginSuccess }) {
         autoComplete="username"
         required
       />
-      <label htmlFor="password">Password</label>
+      <label htmlFor="password">Passwort</label>
       <input
         id="password"
         type="password"
@@ -45,7 +45,7 @@ function LoginForm({ onLoginSuccess }) {
       />
       {error && <p className="login-error">{error}</p>}
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Logging in…' : 'Log in'}
+        {isSubmitting ? 'Wird angemeldet…' : 'Anmelden'}
       </button>
     </form>
   )

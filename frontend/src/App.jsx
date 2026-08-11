@@ -4,6 +4,7 @@ import SanctionForm from "./components/SanctionForm";
 import RecentSanctionsList from "./components/RecentSanctionsList";
 import AllSanctionsPage from "./components/AllSanctionsPage";
 import AdminPage from "./components/AdminPage";
+import AppHeader from "./components/AppHeader";
 import "./App.css";
 
 const STORAGE_KEY = "phrasenschwein.auth";
@@ -61,21 +62,18 @@ function App() {
   }
 
   return (
-    <div>
-      <h1>Welcome, {auth.username}</h1>
-      <p>You are logged in.</p>
+    <div id="main">
+      <AppHeader
+        title={`Willkommen, ${auth.username}`}
+        subtitle="Du bist eingeloggt."
+        onShowAllSanctions={() => setShowAllSanctions(true)}
+        onLogout={handleLogout}
+      />
       <section id="center">
         <SanctionForm />
       </section>
-      <button type="button" className="counter" onClick={() => setShowAllSanctions(true)} style={{ marginRight: '1vw' }}>
-        Alle Sanktionen anzeigen
-      </button>
-      <button type="button" className="counter" onClick={handleLogout} style={{ marginTop: '15vh' }} >
-        Log out
-      </button>
     </div>
   );
 }
 
 export default App;
-// style={{ flexDirection: 'column' }}

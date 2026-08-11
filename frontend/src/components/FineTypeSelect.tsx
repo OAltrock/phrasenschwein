@@ -100,23 +100,16 @@ export default function FineTypeSelect({
     <div className="fine-type-select" ref={containerRef}>
       <style>{`
         .fine-type-select {
-          --border: #d8d5cc;
-          --border-hover: #b8b4a8;
-          --accent: #2f6f5e;
-          --accent-soft: #eaf2ef;
-          --text: #23221f;
-          --text-muted: #6b6862;
-          --bg: #ffffff;
           position: relative;
           width: 260px;
-          font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+          font-family: var(--sans);
         }
         .fts-label {
           display: block;
           font-size: 12.5px;
           font-weight: 600;
           letter-spacing: 0.02em;
-          color: var(--text-muted);
+          color: var(--text);
           margin-bottom: 6px;
         }
         .fts-required {
@@ -133,17 +126,17 @@ export default function FineTypeSelect({
           border-radius: 10px;
           padding: 10px 12px;
           font-size: 14.5px;
-          color: var(--text);
+          color: var(--text-h);
           cursor: pointer;
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .fts-trigger:hover:not(:disabled) {
-          border-color: var(--border-hover);
+          border-color: var(--accent-border);
         }
         .fts-trigger:focus-visible {
           outline: none;
           border-color: var(--accent);
-          box-shadow: 0 0 0 3px var(--accent-soft);
+          box-shadow: 0 0 0 3px var(--accent-bg);
         }
         .fts-trigger:disabled {
           opacity: 0.55;
@@ -156,16 +149,16 @@ export default function FineTypeSelect({
           min-width: 0;
         }
         .fts-placeholder {
-          color: var(--text-muted);
+          color: var(--text);
         }
         .fts-amount {
           font-variant-numeric: tabular-nums;
           font-size: 12.5px;
-          color: var(--text-muted);
+          color: var(--text);
         }
         .fts-chevron {
           flex-shrink: 0;
-          color: var(--text-muted);
+          color: var(--text);
           transition: transform 0.15s ease;
         }
         .fts-chevron.open {
@@ -180,7 +173,7 @@ export default function FineTypeSelect({
           background: var(--bg);
           border: 1.5px solid var(--border);
           border-radius: 10px;
-          box-shadow: 0 8px 24px rgba(20, 20, 18, 0.1);
+          box-shadow: var(--shadow);
           padding: 4px;
           list-style: none;
           margin: 0;
@@ -195,11 +188,11 @@ export default function FineTypeSelect({
           padding: 9px 10px;
           border-radius: 7px;
           font-size: 14.5px;
-          color: var(--text);
+          color: var(--text-h);
           cursor: pointer;
         }
         .fts-option.active {
-          background: var(--accent-soft);
+          background: var(--accent-bg);
         }
         .fts-option-left {
           display: flex;
@@ -209,7 +202,7 @@ export default function FineTypeSelect({
         .fts-option-amount {
           font-variant-numeric: tabular-nums;
           font-size: 12.5px;
-          color: var(--text-muted);
+          color: var(--text);
         }
         .fts-check {
           color: var(--accent);
