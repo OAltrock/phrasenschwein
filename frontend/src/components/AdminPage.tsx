@@ -84,6 +84,7 @@ function AdminPage({ adminUsername, onLogout, onShowAllSanctions }: AdminPagePro
         subtitle="Du bist als Admin eingeloggt."
         onShowAllSanctions={onShowAllSanctions}
         onLogout={onLogout}
+        showBalance={false}
       />
       <section id="center">
         <form className="login-form" onSubmit={handleSubmit}>
