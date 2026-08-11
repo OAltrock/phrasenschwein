@@ -1,5 +1,6 @@
 package controller;
 
+import dtos.PhraseLikeResponse;
 import dtos.PhraseResponse;
 import dtos.SanctionRequest;
 import jakarta.validation.Valid;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,12 +35,19 @@ public class PhraseController {
     }
 
     @GetMapping("/recent")
-    public List<PhraseResponse> recent() {
-        return phraseService.recentSanctions();
+    public List<PhraseResponse> recent(@AuthenticationPrincipal PhraseUserPrincipal principal) {
+        return phraseService.recentSanctions(principal != null ? principal.getId() : null);
     }
 
     @GetMapping("/all")
-    public List<PhraseResponse> all() {
-        return phraseService.allSanctions();
+    public List<PhraseResponse> all(@AuthenticationPrincipal PhraseUserPrincipal principal) {
+        return phraseService.allSanctions(principal != null ? principal.getId() : null);
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<PhraseLikeResponse> toggleLike(@PathVariable Long id,
+                                                           @AuthenticationPrincipal PhraseUserPrincipal principal) {
+        PhraseLikeResponse response = phraseService.toggleLike(id, principal.getId());
+        return ResponseEntity.ok(response);
     }
 }

@@ -2,6 +2,7 @@ package service;
 
 import com.convales.phrasenschwein.PhrasenSchweinApplication;
 import com.convales.phrasenschwein.TestcontainersConfiguration;
+import dtos.PhraseLikeResponse;
 import dtos.PhraseResponse;
 import dtos.SanctionRequest;
 import exceptions.ResourceNotFoundException;
@@ -19,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import repository.FineTypeRepository;
+import repository.PhraseLikeRepository;
 import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
@@ -40,6 +42,8 @@ class PhraseServiceTest {
     @Autowired
     private PhraseRepository phraseRepository;
     @Autowired
+    private PhraseLikeRepository phraseLikeRepository;
+    @Autowired
     private FineTypeRepository fineTypeRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -60,6 +64,7 @@ class PhraseServiceTest {
 
     @BeforeEach
     void setUp() {
+        phraseLikeRepository.deleteAll();
         phraseRepository.deleteAll();
         phraseUserRepository.deleteAll();
 
@@ -160,7 +165,7 @@ class PhraseServiceTest {
 
     @Test
     void recentSanctionsReturnsEmptyListWhenNoneExist() {
-        assertThat(phraseService.recentSanctions()).isEmpty();
+        assertThat(phraseService.recentSanctions(null)).isEmpty();
     }
 
     @Test
@@ -169,7 +174,7 @@ class PhraseServiceTest {
         phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.STANDARD, "zweite"), issuer.getId());
         phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.SCHWER, "dritte"), issuer.getId());
 
-        List<PhraseResponse> recent = phraseService.recentSanctions();
+        List<PhraseResponse> recent = phraseService.recentSanctions(null);
 
         assertThat(recent).hasSize(3);
         assertThat(recent.get(0).text()).isEqualTo("dritte");
@@ -184,7 +189,7 @@ class PhraseServiceTest {
             phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "phrase-" + i), issuer.getId());
         }
 
-        List<PhraseResponse> recent = phraseService.recentSanctions();
+        List<PhraseResponse> recent = phraseService.recentSanctions(null);
 
         assertThat(recent).hasSize(10);
         assertThat(recent.get(0).text()).isEqualTo("phrase-11");
@@ -193,19 +198,95 @@ class PhraseServiceTest {
 
     @Test
     void allSanctionsReturnsEmptyListWhenNoneExist() {
-        assertThat(phraseService.allSanctions()).isEmpty();
+        assertThat(phraseService.allSanctions(null)).isEmpty();
     }
 
     @Test
-    void allSanctionsReturnsMostRecentFirstAndIsNotLimitedToTen() {
+    void allSanctionsWithNoLikesFallsBackToMostRecentFirstAndIsNotLimitedToTen() {
         for (int i = 0; i < 12; i++) {
             phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "phrase-" + i), issuer.getId());
         }
 
-        List<PhraseResponse> all = phraseService.allSanctions();
+        List<PhraseResponse> all = phraseService.allSanctions(null);
 
         assertThat(all).hasSize(12);
         assertThat(all.get(0).text()).isEqualTo("phrase-11");
         assertThat(all.get(11).text()).isEqualTo("phrase-0");
+        assertThat(all).allSatisfy(response -> assertThat(response.likeCount()).isZero());
+    }
+
+    @Test
+    void allSanctionsIsSortedByLikeCountDescending() {
+        PhraseResponse least = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "least liked"), issuer.getId());
+        PhraseResponse most = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "most liked"), issuer.getId());
+        PhraseResponse middle = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "middle liked"), issuer.getId());
+
+        PhraseUser secondLiker = newUser("second-liker");
+
+        phraseService.toggleLike(most.id(), issuer.getId());
+        phraseService.toggleLike(most.id(), secondLiker.getId());
+        phraseService.toggleLike(middle.id(), issuer.getId());
+
+        List<PhraseResponse> all = phraseService.allSanctions(null);
+
+        assertThat(all).extracting(PhraseResponse::text)
+                .containsExactly("most liked", "middle liked", "least liked");
+        assertThat(all.get(0).likeCount()).isEqualTo(2);
+        assertThat(all.get(1).likeCount()).isEqualTo(1);
+        assertThat(all.get(2).likeCount()).isEqualTo(0);
+    }
+
+    @Test
+    void allSanctionsReflectsLikedByCurrentUser() {
+        PhraseResponse created = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"), issuer.getId());
+        phraseService.toggleLike(created.id(), issuer.getId());
+
+        List<PhraseResponse> asLiker = phraseService.allSanctions(issuer.getId());
+        assertThat(asLiker.getFirst().likedByCurrentUser()).isTrue();
+
+        List<PhraseResponse> asOtherUser = phraseService.allSanctions(receiver.getId());
+        assertThat(asOtherUser.getFirst().likedByCurrentUser()).isFalse();
+
+        List<PhraseResponse> asAnonymous = phraseService.allSanctions(null);
+        assertThat(asAnonymous.getFirst().likedByCurrentUser()).isFalse();
+    }
+
+    @Test
+    void toggleLikeAddsLikeAndIncrementsCount() {
+        PhraseResponse created = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"), issuer.getId());
+
+        PhraseLikeResponse response = phraseService.toggleLike(created.id(), issuer.getId());
+
+        assertThat(response.likedByCurrentUser()).isTrue();
+        assertThat(response.likeCount()).isEqualTo(1);
+    }
+
+    @Test
+    void toggleLikeTwiceByTheSameUserRemovesTheLike() {
+        PhraseResponse created = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"), issuer.getId());
+
+        phraseService.toggleLike(created.id(), issuer.getId());
+        PhraseLikeResponse secondToggle = phraseService.toggleLike(created.id(), issuer.getId());
+
+        assertThat(secondToggle.likedByCurrentUser()).isFalse();
+        assertThat(secondToggle.likeCount()).isZero();
+    }
+
+    @Test
+    void toggleLikeIsIndependentPerUser() {
+        PhraseResponse created = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"), issuer.getId());
+        PhraseUser secondLiker = newUser("second-liker");
+
+        phraseService.toggleLike(created.id(), issuer.getId());
+        PhraseLikeResponse response = phraseService.toggleLike(created.id(), secondLiker.getId());
+
+        assertThat(response.likedByCurrentUser()).isTrue();
+        assertThat(response.likeCount()).isEqualTo(2);
+    }
+
+    @Test
+    void toggleLikeThrowsWhenPhraseDoesNotExist() {
+        assertThrows(ResourceNotFoundException.class, () ->
+                phraseService.toggleLike(-1L, issuer.getId()));
     }
 }

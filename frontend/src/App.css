@@ -87,3 +87,30 @@
   margin: 16px auto 0;
   font-size: 14px;
 }
+
+.like-button {
+  align-self: flex-start;
+  margin-top: 6px;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent-border);
+    color: var(--accent);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  &.liked {
+    color: #e5484d;
+    border-color: #e5484d;
+    background: rgba(229, 72, 77, 0.08);
+  }
+}

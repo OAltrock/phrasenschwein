@@ -7,9 +7,10 @@ import UserSelect from "./UserSelect";
 interface AdminPageProps {
   adminUsername: string;
   onLogout: () => void;
+  onShowAllSanctions: () => void;
 }
 
-function AdminPage({ adminUsername, onLogout }: AdminPageProps) {
+function AdminPage({ adminUsername, onLogout, onShowAllSanctions }: AdminPageProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -127,6 +128,9 @@ function AdminPage({ adminUsername, onLogout }: AdminPageProps) {
         <SanctionForm refreshKey={userListKey} />
         <AccountResetForm refreshKey={userListKey} />
       </section>
+      <button type="button" className="counter" onClick={onShowAllSanctions} style={{ marginRight: '1vw' }}>
+        Alle Sanktionen anzeigen
+      </button>
       <button
         type="button"
         className="counter"

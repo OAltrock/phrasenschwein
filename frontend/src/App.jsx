@@ -31,11 +31,11 @@ function App() {
     setAuth(null);
   }
 
-  if (!auth) {
-    if (showAllSanctions) {
-      return <AllSanctionsPage onBack={() => setShowAllSanctions(false)} />;
-    }
+  if (showAllSanctions) {
+    return <AllSanctionsPage onBack={() => setShowAllSanctions(false)} />;
+  }
 
+  if (!auth) {
     return (
       <div id="main">
         <h2>
@@ -43,7 +43,7 @@ function App() {
           haben!
         </h2>
         <section id="center" style={{ alignItems: 'baseline', justifyContent: 'space-around'}}>
-          <LoginForm onLoginSuccess={handleLoginSuccess} />          
+          <LoginForm onLoginSuccess={handleLoginSuccess} />
           <RecentSanctionsList onShowAll={() => setShowAllSanctions(true)} />
         </section>
       </div>
@@ -51,7 +51,13 @@ function App() {
   }
 
   if (auth.admin) {
-    return <AdminPage adminUsername={auth.username} onLogout={handleLogout} />;
+    return (
+      <AdminPage
+        adminUsername={auth.username}
+        onLogout={handleLogout}
+        onShowAllSanctions={() => setShowAllSanctions(true)}
+      />
+    );
   }
 
   return (
@@ -61,6 +67,9 @@ function App() {
       <section id="center">
         <SanctionForm />
       </section>
+      <button type="button" className="counter" onClick={() => setShowAllSanctions(true)} style={{ marginRight: '1vw' }}>
+        Alle Sanktionen anzeigen
+      </button>
       <button type="button" className="counter" onClick={handleLogout} style={{ marginTop: '15vh' }} >
         Log out
       </button>

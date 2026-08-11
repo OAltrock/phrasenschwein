@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import repository.FineTypeRepository;
+import repository.PhraseLikeRepository;
 import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
@@ -41,6 +42,8 @@ class UserServiceTest {
     private PhraseUserRepository phraseUserRepository;
     @Autowired
     private PhraseRepository phraseRepository;
+    @Autowired
+    private PhraseLikeRepository phraseLikeRepository;
     @Autowired
     private FineTypeRepository fineTypeRepository;
     @Autowired
@@ -63,6 +66,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        phraseLikeRepository.deleteAll();
         phraseRepository.deleteAll();
         phraseUserRepository.deleteAll();
 

@@ -12,6 +12,8 @@ public record PhraseResponse(
         FineType.Name type,
         BigDecimal amount,
         String text,
-        LocalDateTime issuedAt
+        LocalDateTime issuedAt,
+        long likeCount,
+        boolean likedByCurrentUser
 ) {
 }

@@ -54,7 +54,7 @@ function SanctionForm({ refreshKey }: SanctionFormProps = {}) {
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
-      <h5>Jemand hat eine hole Phrase benutzt?</h5>
+      <h5>Jemand hat eine hohle Phrase benutzt?</h5>
       <UserSelect value={username} onChange={setUsername} required refreshKey={refreshKey} />
       <FineTypeSelect value={fineType} onChange={setFineType} required />
       <label htmlFor="text">Grund</label>

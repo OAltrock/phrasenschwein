@@ -4,6 +4,7 @@ import com.convales.phrasenschwein.PhrasenSchweinApplication;
 import com.convales.phrasenschwein.TestcontainersConfiguration;
 import dtos.LoginRequest;
 import dtos.LoginResponse;
+import dtos.PhraseLikeResponse;
 import dtos.PhraseResponse;
 import dtos.SanctionRequest;
 import models.FineType;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import repository.FineTypeRepository;
+import repository.PhraseLikeRepository;
 import repository.PhraseRepository;
 import repository.PhraseUserRepository;
 
@@ -40,6 +42,8 @@ class PhraseControllerTest {
     private PhraseUserRepository phraseUserRepository;
     @Autowired
     private PhraseRepository phraseRepository;
+    @Autowired
+    private PhraseLikeRepository phraseLikeRepository;
     @Autowired
     private FineTypeRepository fineTypeRepository;
     @Autowired
@@ -62,6 +66,7 @@ class PhraseControllerTest {
 
     @BeforeEach
     void setUp() {
+        phraseLikeRepository.deleteAll();
         phraseRepository.deleteAll();
         phraseUserRepository.deleteAll();
 
@@ -197,5 +202,84 @@ class PhraseControllerTest {
         assertThat(all).hasSize(2);
         assertThat(all[0].text()).isEqualTo("zweite");
         assertThat(all[1].text()).isEqualTo("erste");
+    }
+
+    @Test
+    void likeOverHttpWithoutTokenIsRejected() {
+        PhraseResponse phrase = restClient.post()
+                .uri("/api/phrase/sanction")
+                .header("Authorization", "Bearer " + token)
+                .body(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"))
+                .retrieve()
+                .body(PhraseResponse.class);
+
+        RestClientResponseException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.post()
+                        .uri("/api/phrase/{id}/like", phrase.id())
+                        .retrieve()
+                        .body(PhraseLikeResponse.class));
+
+        assertThat(ex.getStatusCode().is4xxClientError()).isTrue();
+    }
+
+    @Test
+    void likeOverHttpTogglesLikeAndAffectsAllSortOrder() {
+        PhraseResponse lessLiked = restClient.post()
+                .uri("/api/phrase/sanction")
+                .header("Authorization", "Bearer " + token)
+                .body(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "weniger geliked"))
+                .retrieve()
+                .body(PhraseResponse.class);
+        PhraseResponse moreLiked = restClient.post()
+                .uri("/api/phrase/sanction")
+                .header("Authorization", "Bearer " + token)
+                .body(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "mehr geliked"))
+                .retrieve()
+                .body(PhraseResponse.class);
+
+        PhraseLikeResponse likeResponse = restClient.post()
+                .uri("/api/phrase/{id}/like", moreLiked.id())
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(PhraseLikeResponse.class);
+
+        assertThat(likeResponse.likedByCurrentUser()).isTrue();
+        assertThat(likeResponse.likeCount()).isEqualTo(1);
+
+        PhraseResponse[] all = restClient.get()
+                .uri("/api/phrase/all")
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(PhraseResponse[].class);
+
+        assertThat(all).isNotNull();
+        assertThat(all[0].text()).isEqualTo("mehr geliked");
+        assertThat(all[0].likeCount()).isEqualTo(1);
+        assertThat(all[0].likedByCurrentUser()).isTrue();
+        assertThat(all[1].text()).isEqualTo("weniger geliked");
+        assertThat(all[1].likeCount()).isZero();
+
+        PhraseLikeResponse unlikeResponse = restClient.post()
+                .uri("/api/phrase/{id}/like", moreLiked.id())
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(PhraseLikeResponse.class);
+
+        assertThat(unlikeResponse.likedByCurrentUser()).isFalse();
+        assertThat(unlikeResponse.likeCount()).isZero();
+    }
+
+    @Test
+    void likeOverHttpOnUnknownPhraseReturns404() {
+        RestClientResponseException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.post()
+                        .uri("/api/phrase/{id}/like", -1)
+                        .header("Authorization", "Bearer " + token)
+                        .retrieve()
+                        .body(PhraseLikeResponse.class));
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

@@ -25,6 +25,14 @@ CREATE TABLE IF NOT EXISTS phrase (
 
 CREATE INDEX idx_fine_issued_at ON phrase (issued_at DESC);
 
+CREATE TABLE IF NOT EXISTS phrase_like (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    phrase_id  INT UNSIGNED NOT NULL REFERENCES phrase(id),
+    user_id    INT UNSIGNED NOT NULL REFERENCES phrase_user(id),
+    liked_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_phrase_like_phrase_user UNIQUE (phrase_id, user_id)
+) ENGINE=InnoDB;
+
 INSERT INTO fine_type (name) VALUES
     ('LEICHT'),
     ('STANDARD'),

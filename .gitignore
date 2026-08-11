@@ -31,3 +31,21 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment / secrets ###
+.env
+.env.*
+
+### OS ###
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+### Logs ###
+*.log
+hs_err_pid*.log
+
+### Docker Compose local overrides ###
+compose.override.yaml
+compose.override.yml
+docker-compose.override.yml
