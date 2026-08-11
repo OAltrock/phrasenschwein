@@ -1,3 +1,4 @@
+import AccountBalance from './AccountBalance'
 import './AppHeader.css'
 
 function AppHeader({ title, subtitle, onShowAllSanctions, onLogout }) {
@@ -6,6 +7,7 @@ function AppHeader({ title, subtitle, onShowAllSanctions, onLogout }) {
       <div className="app-header-text">
         <h1>{title}</h1>
         {subtitle && <p className="app-header-subtitle">{subtitle}</p>}
+        <AccountBalance />
       </div>
       <div className="app-header-actions">
         {onShowAllSanctions && (

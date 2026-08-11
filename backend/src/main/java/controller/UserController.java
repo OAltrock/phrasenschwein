@@ -3,8 +3,11 @@ package controller;
 import dtos.AccountResetRequest;
 import dtos.AccountResetResponse;
 import dtos.CreateUserRequest;
+import dtos.CurrentUserResponse;
 import dtos.UserSummary;
+import exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
+import models.PhraseUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,6 +35,13 @@ public class UserController {
     public UserController(PhraseUserRepository phraseUserRepository, UserService userService) {
         this.phraseUserRepository = phraseUserRepository;
         this.userService = userService;
+    }
+
+    @GetMapping("/me")
+    public CurrentUserResponse me(@AuthenticationPrincipal PhraseUserPrincipal principal) {
+        PhraseUser user = phraseUserRepository.findById(principal.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return new CurrentUserResponse(user.getId(), user.getUsername(), user.isAdmin(), user.getAccountBalance());
     }
 
     @GetMapping

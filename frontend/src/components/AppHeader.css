@@ -21,6 +21,18 @@
   font-size: 14px;
 }
 
+.account-balance {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.account-balance-due {
+  color: #a35a00;
+}
+
 .app-header-actions {
   display: flex;
   gap: 10px;

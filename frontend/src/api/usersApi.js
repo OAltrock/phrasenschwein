@@ -15,6 +15,19 @@ export async function fetchUsers() {
   return response.json();
 }
 
+export async function fetchCurrentUser() {
+  const response = await fetch(`${API_URL}/api/users/me`, {
+    headers: authHeader(),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "Failed to load account balance");
+  }
+
+  return response.json();
+}
+
 export async function resetAccount(username) {
   const response = await fetch(`${API_URL}/api/users/reset`, {
     method: "POST",

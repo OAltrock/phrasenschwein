@@ -5,6 +5,7 @@ import com.convales.phrasenschwein.TestcontainersConfiguration;
 import dtos.AccountResetRequest;
 import dtos.AccountResetResponse;
 import dtos.CreateUserRequest;
+import dtos.CurrentUserResponse;
 import dtos.LoginRequest;
 import dtos.LoginResponse;
 import dtos.UserSummary;
@@ -95,6 +96,46 @@ class UserControllerTest {
                 .body(LoginResponse.class);
         adminToken = adminLogin.token();
         assertThat(adminLogin.admin()).isTrue();
+    }
+
+    @Test
+    void meReturnsCurrentUserWithBalance() {
+        CurrentUserResponse response = restClient.get()
+                .uri("/api/users/me")
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(CurrentUserResponse.class);
+
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(actor.getId());
+        assertThat(response.username()).isEqualTo("actor");
+        assertThat(response.admin()).isFalse();
+        assertThat(response.accountBalance()).isEqualByComparingTo("4.00");
+    }
+
+    @Test
+    void meAsAdminReturnsAdminFlag() {
+        CurrentUserResponse response = restClient.get()
+                .uri("/api/users/me")
+                .header("Authorization", "Bearer " + adminToken)
+                .retrieve()
+                .body(CurrentUserResponse.class);
+
+        assertThat(response).isNotNull();
+        assertThat(response.username()).isEqualTo("admin-user");
+        assertThat(response.admin()).isTrue();
+    }
+
+    @Test
+    void meWithoutTokenIsRejected() {
+        RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.get()
+                        .uri("/api/users/me")
+                        .retrieve()
+                        .body(CurrentUserResponse.class));
+
+        assertThat(ex.getStatusCode().is4xxClientError()).isTrue();
     }
 
     @Test
