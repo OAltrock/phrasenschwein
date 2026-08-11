@@ -21,6 +21,7 @@ function loadStoredAuth() {
 function App() {
   const [auth, setAuth] = useState(loadStoredAuth);
   const [showAllSanctions, setShowAllSanctions] = useState(false);
+  const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
 
   function handleLoginSuccess(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -68,9 +69,10 @@ function App() {
         subtitle="Du bist eingeloggt."
         onShowAllSanctions={() => setShowAllSanctions(true)}
         onLogout={handleLogout}
+        balanceRefreshKey={balanceRefreshKey}
       />
       <section id="center">
-        <SanctionForm />
+        <SanctionForm onSanctioned={() => setBalanceRefreshKey((key) => key + 1)} />
       </section>
     </div>
   );

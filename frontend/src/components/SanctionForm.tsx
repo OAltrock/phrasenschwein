@@ -7,9 +7,10 @@ const MESSAGE_DURATION_MS = 5000
 
 interface SanctionFormProps {
   refreshKey?: number | string
+  onSanctioned?: () => void
 }
 
-function SanctionForm({ refreshKey }: SanctionFormProps = {}) {
+function SanctionForm({ refreshKey, onSanctioned }: SanctionFormProps = {}) {
   const [username, setUsername] = useState<string | null>(null)
   const [text, setText] = useState('')
   const [fineType, setFineType] = useState<FineType | null>(null)
@@ -43,6 +44,7 @@ function SanctionForm({ refreshKey }: SanctionFormProps = {}) {
     try {
       const resp = await sanction(username, fineType, text)
       showMessage(`Auf dem Konto von ${resp.receiver} wurde eine ${fineType.toLowerCase()} Strafe erhoben.`)
+      onSanctioned?.()
     } catch (err) {
       setError(err.message)
     } finally {

@@ -4,7 +4,11 @@ import { fetchCurrentUser } from '../api/usersApi'
 const formatEuro = (amount: number) =>
   new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount)
 
-function AccountBalance() {
+interface AccountBalanceProps {
+  refreshKey?: number | string
+}
+
+function AccountBalance({ refreshKey }: AccountBalanceProps = {}) {
   const [balance, setBalance] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -20,7 +24,7 @@ function AccountBalance() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [refreshKey])
 
   if (error) return null
   if (balance === null) return <span className="account-balance">Lade Kontostand…</span>
