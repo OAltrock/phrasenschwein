@@ -52,6 +52,7 @@ class PhraseControllerTest {
     private RestClient restClient;
     private PhraseUser receiver;
     private String token;
+    private String adminToken;
 
     @BeforeAll
     void seedFineTypes() {
@@ -82,6 +83,13 @@ class PhraseControllerTest {
         receiver.setAccountBalance(BigDecimal.ZERO);
         phraseUserRepository.save(receiver);
 
+        PhraseUser admin = new PhraseUser();
+        admin.setUsername("admin-user");
+        admin.setPasswordHash(passwordEncoder.encode("password"));
+        admin.setAccountBalance(BigDecimal.ZERO);
+        admin.setAdmin(true);
+        phraseUserRepository.save(admin);
+
         restClient = RestClient.builder().baseUrl("http://localhost:" + port).build();
 
         LoginResponse login = restClient.post()
@@ -90,6 +98,13 @@ class PhraseControllerTest {
                 .retrieve()
                 .body(LoginResponse.class);
         token = login.token();
+
+        LoginResponse adminLogin = restClient.post()
+                .uri("/api/auth/login")
+                .body(new LoginRequest("admin-user", "password"))
+                .retrieve()
+                .body(LoginResponse.class);
+        adminToken = adminLogin.token();
     }
 
     @Test
@@ -268,6 +283,27 @@ class PhraseControllerTest {
 
         assertThat(unlikeResponse.likedByCurrentUser()).isFalse();
         assertThat(unlikeResponse.likeCount()).isZero();
+    }
+
+    @Test
+    void likeOverHttpAsAdminReturns403AndDoesNotCreateLike() {
+        PhraseResponse phrase = restClient.post()
+                .uri("/api/phrase/sanction")
+                .header("Authorization", "Bearer " + token)
+                .body(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"))
+                .retrieve()
+                .body(PhraseResponse.class);
+
+        RestClientResponseException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                RestClientResponseException.class,
+                () -> restClient.post()
+                        .uri("/api/phrase/{id}/like", phrase.id())
+                        .header("Authorization", "Bearer " + adminToken)
+                        .retrieve()
+                        .body(PhraseLikeResponse.class));
+
+        assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(phraseLikeRepository.count()).isZero();
     }
 
     @Test

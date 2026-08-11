@@ -5,6 +5,7 @@ import com.convales.phrasenschwein.TestcontainersConfiguration;
 import dtos.PhraseLikeResponse;
 import dtos.PhraseResponse;
 import dtos.SanctionRequest;
+import exceptions.AdminCannotLikeException;
 import exceptions.ResourceNotFoundException;
 import models.FineType;
 import models.Phrase;
@@ -78,6 +79,12 @@ class PhraseServiceTest {
         user.setPasswordHash(passwordEncoder.encode("password"));
         user.setAccountBalance(BigDecimal.ZERO);
         return phraseUserRepository.save(user);
+    }
+
+    private PhraseUser newAdmin(String username) {
+        PhraseUser admin = newUser(username);
+        admin.setAdmin(true);
+        return phraseUserRepository.save(admin);
     }
 
     @Test
@@ -288,5 +295,16 @@ class PhraseServiceTest {
     void toggleLikeThrowsWhenPhraseDoesNotExist() {
         assertThrows(ResourceNotFoundException.class, () ->
                 phraseService.toggleLike(-1L, issuer.getId()));
+    }
+
+    @Test
+    void toggleLikeThrowsWhenUserIsAdmin() {
+        PhraseResponse created = phraseService.sanction(new SanctionRequest(receiver.getUsername(), FineType.Name.LEICHT, "x"), issuer.getId());
+        PhraseUser admin = newAdmin("admin-liker");
+
+        assertThrows(AdminCannotLikeException.class, () ->
+                phraseService.toggleLike(created.id(), admin.getId()));
+
+        assertThat(phraseLikeRepository.countByPhraseId(created.id())).isZero();
     }
 }

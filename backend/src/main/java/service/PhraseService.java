@@ -3,6 +3,7 @@ package service;
 import dtos.PhraseLikeResponse;
 import dtos.PhraseResponse;
 import dtos.SanctionRequest;
+import exceptions.AdminCannotLikeException;
 import exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import models.FineType;
@@ -79,14 +80,19 @@ public class PhraseService {
         Phrase phrase = phraseRepository.findById(phraseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Phrase not found: " + phraseId));
 
+        PhraseUser user = phraseUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.isAdmin()) {
+            throw new AdminCannotLikeException("Admins cannot like phrases");
+        }
+
         boolean nowLiked = phraseLikeRepository.findByPhraseIdAndUserId(phraseId, userId)
                 .map(existing -> {
                     phraseLikeRepository.delete(existing);
                     return false;
                 })
                 .orElseGet(() -> {
-                    PhraseUser user = phraseUserRepository.findById(userId)
-                            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
                     PhraseLike like = new PhraseLike();
                     like.setPhrase(phrase);
                     like.setUser(user);

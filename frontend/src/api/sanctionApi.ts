@@ -75,8 +75,11 @@ export async function toggleLike(phraseId: number): Promise<PhraseLikeResponse> 
   })
 
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       throw new Error('Bitte einloggen, um Phrasen zu liken.')
+    }
+    if (response.status === 403) {
+      throw new Error('Admins können nicht liken.')
     }
     const body = await response.json().catch(() => null)
     throw new Error(body?.message || 'Failed to like phrase')

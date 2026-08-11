@@ -147,3 +147,8 @@
     background: rgba(229, 72, 77, 0.08);
   }
 }
+
+.like-button-readonly {
+  cursor: default;
+  opacity: 0.75;
+}

@@ -33,7 +33,7 @@ function App() {
   }
 
   if (showAllSanctions) {
-    return <AllSanctionsPage onBack={() => setShowAllSanctions(false)} />;
+    return <AllSanctionsPage onBack={() => setShowAllSanctions(false)} isAdmin={auth?.admin ?? false} />;
   }
 
   if (!auth) {

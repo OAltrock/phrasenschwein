@@ -4,9 +4,10 @@ import { formatDate } from '../utils/formatDate'
 
 interface AllSanctionsPageProps {
   onBack: () => void
+  isAdmin?: boolean
 }
 
-function AllSanctionsPage({ onBack }: AllSanctionsPageProps) {
+function AllSanctionsPage({ onBack, isAdmin = false }: AllSanctionsPageProps) {
   const [sanctions, setSanctions] = useState<PhraseResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -64,15 +65,21 @@ function AllSanctionsPage({ onBack }: AllSanctionsPageProps) {
                 <span className="recent-sanctions-text">{sanction.type}-Strafe</span>
                 <span className="recent-sanctions-text">{sanction.text}</span>
                 <span className="recent-sanctions-date">{formatDate(sanction.issuedAt)}</span>
-                <button
-                  type="button"
-                  className={`like-button ${sanction.likedByCurrentUser ? 'liked' : ''}`}
-                  onClick={() => handleLike(sanction.id)}
-                  disabled={likingId === sanction.id}
-                  aria-pressed={sanction.likedByCurrentUser}
-                >
-                  {sanction.likedByCurrentUser ? '♥' : '♡'} {sanction.likeCount}
-                </button>
+                {isAdmin ? (
+                  <span className="like-button like-button-readonly">
+                    ♡ {sanction.likeCount}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className={`like-button ${sanction.likedByCurrentUser ? 'liked' : ''}`}
+                    onClick={() => handleLike(sanction.id)}
+                    disabled={likingId === sanction.id}
+                    aria-pressed={sanction.likedByCurrentUser}
+                  >
+                    {sanction.likedByCurrentUser ? '♥' : '♡'} {sanction.likeCount}
+                  </button>
+                )}
               </li>
             ))}
           </ul>

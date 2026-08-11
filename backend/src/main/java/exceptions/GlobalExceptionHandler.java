@@ -49,6 +49,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorBody(HttpStatus.CONFLICT, ex.getMessage()));
     }
 
+    @ExceptionHandler(AdminCannotLikeException.class)
+    public ResponseEntity<Map<String, Object>> handleAdminCannotLikeException(AdminCannotLikeException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody(HttpStatus.FORBIDDEN, ex.getMessage()));
+    }
+
     private Map<String, Object> errorBody(HttpStatus status, String message) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now());
